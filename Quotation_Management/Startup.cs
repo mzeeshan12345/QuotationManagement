@@ -174,32 +174,6 @@ namespace Quotation_Management
 
         }
 
-        private void CreateSuperAdminUser(IServiceProvider serviceProvider)
-        {
-
-            var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-
-            //Check if the admin user exists and create it if not
-            //Add to the Administrator role
-
-            //string email = "superadmin@limitlesssol.com";
-            string email = "superadmin@domain.com";
-            //string username = "superadmin@limitlesssol.com";
-            string username = "superadmin@domain.com";
-
-            Task<ApplicationUser> superadmin = userManager.FindByEmailAsync(email);
-            superadmin.Wait();
-
-
-            ApplicationUser administrator = new ApplicationUser();
-            administrator.Email = email;
-            administrator.UserName = username;
-            administrator.CompanyId = 3;
-
-            Task<IdentityResult> newUser = userManager.CreateAsync(administrator, "@Dm1N@$0$5#");
-            newUser.Wait();
-
-
-        }
+        
     }
 }
