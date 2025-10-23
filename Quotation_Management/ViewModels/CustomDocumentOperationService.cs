@@ -27,7 +27,7 @@ namespace Quotation_Management.ViewModels
                 var mailAddress = new MailAddress(request.CustomData);
                 var recipients = new MailAddressCollection() { mailAddress };
                 var attachment = new Attachment(stream, System.Net.Mime.MediaTypeNames.Application.Pdf);
-                return SendEmail(recipients, "Subject is Here!", "PFA", attachment);
+                return SendEmail('', "Subject is Here!", "PFA", attachment);
             }
         }
 
@@ -43,7 +43,7 @@ namespace Quotation_Management.ViewModels
             string SmtpUserName = "ea7b0f66867bfb1d4a5428bd17529f5b";
             string SmtpUserPassword = "8ff3dc9d679f1b67da8530588e244234";
             string SmtpFrom = "donotreply@limitlesssol.org";
-            string SmtpFromDisplayName = "Limitless Quotation";
+            string SmtpFromDisplayName = "Quotation";
             using (var smtpClient = new SmtpClient(SmtpHost, SmtpPort))
             {
                 smtpClient.DeliveryMethod = SmtpDeliveryMethod.Network;
