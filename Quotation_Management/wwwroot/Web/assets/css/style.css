@@ -3816,10 +3816,11 @@ fieldset:disabled a.btn {
   color: #fff;
   background-color: #b66dff;
   border-color: #b66dff; }
-  .btn-primary:hover {
-    color: #fff;
-    background-color: #a347ff;
-    border-color: #9d3aff; }
+    .btn-primary:hover {
+        color: #fff;
+        background-color: #ffffff;
+        border-color: #9d3aff;
+    }
   .btn-primary:focus, .btn-primary.focus {
     -webkit-box-shadow: 0 0 0 0.2rem rgba(193, 131, 255, 0.5);
     box-shadow: 0 0 0 0.2rem rgba(193, 131, 255, 0.5); }
@@ -13374,5 +13375,101 @@ dl {
   -webkit-box-flex: 1;
   -ms-flex-positive: 1;
   flex-grow: 1; }
+
+
+
+.btn-primary {
+    color: #fff !important;
+    background-color: #65859f !important;
+    border-color: #ffffff !important;
+}
+
+.btn-info {
+    color: #fff !important;
+    background-color: #65859f !important;
+    border-color: #ffffff !important;
+}
+
+.auth form .form-group label {
+    font-size: medium !important;
+    color: #000000 !important;
+}
+
+.auth .brand-logo img {
+    width: 300px !important;
+}
+
+
+
+.auth .auth-form-light {
+    background: #ffffffde !important;
+    border-radius: 30px !important;
+} 
+
+.auth_center {
+    text-align: center !important;
+}
+
+.auth form .form-group .form-control {
+    background: transparent;
+    border-radius: 10px;
+    font-size: .9375rem;
+    border-color: #00008b6e !important;
+}
+
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(0, 0, 0, .05) !important;
+}
+
+
+table.table-bordered > tbody > tr > td {
+    border: 0px solid #090f12 !important;
+}
+
+
+.sidebar {
+    background: #2c4462 !important
+}
+
+.sidebar .nav .nav-item .nav-link { 
+    color: #ffffff !important; 
+}
+
+
+.sidebar .nav .nav-item:hover {
+    background: #426176 !important;
+}
+
+.navbar {
+    background-color: #2c4462 !important
+}
+
+.navbar .navbar-menu-wrapper .navbar-toggler {
+    color: #ffffff !important;
+}
+
+.navbar .navbar-menu-wrapper .navbar-nav .nav-item .nav-link {
+    color: #ffffff !important; 
+}
+
+
+.services-block-three > a {
+    border: 2px solid #a7b3ed !important;
+    border-radius: 4px;
+}
+
+    .services-block-three > a:after { 
+        border-top: 2px solid #5f6b7b !important;
+        border-left: 2px solid #65808c !important;
+        transition: all 0.5s ease 0s;
+        -webkit-transition: all 0.5s ease 0s;
+    }
+
+services-block-three > a a:hover, a:active {
+    color: #712c6b !important;
+    text-decoration: none;
+}
+ 
 
 /*# sourceMappingURL=style.css.map */

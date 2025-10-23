@@ -39,7 +39,14 @@
 
 </head>
 
-
+ <style>
+    .content-wrapper {
+        background-image: url('/Images/Login_background.png');
+        background-size: cover;
+        background-position: center center;
+        background-repeat: no-repeat;
+    }
+ </style>
 <body>
     <div class="container-scroller">
         <div class="container-fluid page-body-wrapper full-page-wrapper">
@@ -50,10 +57,10 @@
                             <div class="brand-logo text-center"> 
                                 <img src="~/CompanyImages/f/QMSLOGO5.png">
                             </div>
-                            <h4>Hello! let's get started</h4>
-                            <h6 class="font-weight-light">Sign in to continue.</h6>
+                            <h4 class="auth_center"> Quotation Management Service Login – Secure Access </h4>
+                            <h6 class="font-weight-light auth_center">Manage and track your quotations in one secure place</h6>
                             <form id="account" method="post">
-                                <h4>Use a local account to log in.</h4>
+                                <h4 class="auth_center"> Log in to get started.</h4>
                                 <hr />
                                 <div asp-validation-summary="All" class="text-danger"></div>
                                 <div class="form-group">
@@ -74,7 +81,7 @@
                                         </label>
                                     </div>
                                 </div>
-                                <div class="form-group">
+                                <div class="form-group auth_center">
                                     <button type="submit" class="btn btn-primary">Log in</button>
                                 </div> 
                             </form>
