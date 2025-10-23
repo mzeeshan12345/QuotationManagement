@@ -11,11 +11,12 @@
 using System;
 using System.Reflection;
 
+[assembly: Microsoft.AspNetCore.Identity.UI.UIFrameworkAttribute("Bootstrap4")]
 [assembly: Microsoft.Extensions.Configuration.UserSecrets.UserSecretsIdAttribute("aspnet-Quotation_Management-B663E658-328C-4D3A-ACE7-B2AE111CD355")]
 [assembly: System.Reflection.AssemblyCompanyAttribute("Quotation_Management")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+cc040c558aa5af8888db17ac0719ad4e2df1d889")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+00c0163c61c8a0614cea4a758e06c8eef797094b")]
 [assembly: System.Reflection.AssemblyProductAttribute("Quotation_Management")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Quotation_Management")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
