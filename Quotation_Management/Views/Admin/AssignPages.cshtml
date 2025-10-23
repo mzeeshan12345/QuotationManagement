@@ -1,0 +1,165 @@
+﻿@{
+    var roles = (IEnumerable<SelectListItem>)ViewData["Roles"];
+
+}
+<script>
+
+        var simpleProducts = [];
+        var filterPages = [];
+        var arrayPages = [];
+        var input;
+
+
+        $(function () {
+            GetPages();
+        });
+
+        function GetPages() {
+
+            $.get('@Url.Action("AllPages", "Admin")', function (data) {
+                arrayPages = data;
+                console.log(arrayPages, "arrayPages");
+            });
+        }
+
+
+    function GetPageswithRole(roles) {
+            $("#showBtn").css("visibility", "visible");
+            input = $(roles).val();
+            $.get('@Url.Action("GetAppPages", "Admin")', { role: input }, function (data) {
+                var selectedPages = data;
+                simpleProducts = Object.values(arrayPages.concat(selectedPages).reduce((r, o) => {
+                    r[o.AppPageId] = o;
+                    return r;
+                }, {}));
+                filterPages = simpleProducts.filter(el => !el.PageName.includes("Update") && !el.PageName.includes("Add") && !el.PageType.includes("Flow") && !el.PageType.includes("View") && !el.PageName.includes("Panel"))
+                 Pagesgrid(filterPages);
+            });
+        }
+
+
+        function Pagesgrid(simpleProducts) {
+
+            $("#gridContainer").dxDataGrid({
+                dataSource: simpleProducts,
+                keyExpr: "AppPageId",
+                showBorders: true,
+                columnAutoWidth: true,
+                allowColumnResizing: true,
+                columnHidingEnabled: true,
+                paging: {
+                    pageSize: 12
+                },
+                editing: {
+                    mode: 'cell',
+                    allowUpdating: true,
+                    allowDeleting: false,
+                    useIcons: true
+                },
+                columnsAutoWidth: true,
+                showBorders: true,
+                filterRow: {
+                    visible: true,
+                    applyFilter: "auto"
+                },
+                grouping: {
+                    autoExpandAll: false,
+                },
+                searchPanel: {
+                    visible: true,
+                    placeholder: "Search..."
+                },
+                //export: {
+                //    enabled: true,
+                //},
+                //onExporting: function (e) {
+                //    console.log(e, "e");
+                //    e.fileName = "Users List"
+                //},
+                headerFilter: {
+                    visible: true
+                },
+                columns: [
+                    {
+                        dataField: "AppPageId",
+                        allowEditing: false,
+                        visible: false
+                    },
+                    {
+                        dataField: "PageName",
+                        allowEditing: false
+                    },
+                    {
+                        dataField: "PageType",
+                        caption: "",
+                        allowEditing: false,
+                        groupIndex: 0,
+                    },
+                    {
+                        dataField: "Read",
+                        caption: "View"
+                    },
+                    {
+                        dataField: "Create",
+                        caption: "Add"
+                    },
+                    {
+                        dataField: "Update" 
+                    },
+                    {
+                        dataField: "Delete" 
+                    }]
+            });
+        }
+
+
+        function onSubmit(model) {
+            console.log(input, "input");
+            console.log(model);
+
+            $.post('/Admin/AddPagePermission?roleId=' + input, { permission: model }, function (data) {
+                console.log(data, "Data Return");
+
+                if (data) {
+                    toastr.success('Add Successfully');
+                    setTimeout(function () {
+                        location.reload();
+                    }.bind(this), 3000);
+                }
+            });
+        }
+
+</script>
+<div class="card shadow mb-4">
+    <!-- Card Header - Accordion -->
+    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary">Assign Permission</h6>
+    </div>
+    <!-- Card Content - Collapse -->
+    <div class="collapse show" id="collapseCardExample" style="">
+        <div class="card-body">
+            <div class="form-row">
+                <div class="form-group col-md-4">
+                    <label for="status">Roles</label>
+                    @Html.DropDownList("Id", roles, "Select Role", new { @class = "form-control", @name = "Name", @id = "Id", @onchange = "GetPageswithRole(this)" })
+
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group col-md-12">
+
+                    <div id="gridContainer"></div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group col-md-4"></div>
+                <div class="form-group col-md-4">
+                    <button class="btn btn-gradient-info mr-2" id="showBtn" type="button" style="visibility: hidden;" onclick="onSubmit(simpleProducts)">Assign </button>
+                </div>
+                <div class="form-group col-md-4"></div>
+            </div>
+        </div>
+    </div>
+</div>

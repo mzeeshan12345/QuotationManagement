@@ -1,0 +1,180 @@
+﻿
+@{
+    ViewData["Title"] = "Main Panel";
+}
+
+<script>
+    var companydata = [];
+    var resulT;
+    var roles;
+    var Pages;
+
+
+    $(function () {
+        localStorage.removeItem("CompanyId");
+        var getPages = JSON.parse(localStorage.getItem('Pages'));
+        Pages = getPages.find(dx => dx.PageName == "Company");
+        if (Pages.Create == true) {
+            $("#createNewCompany").show();
+        }
+        else {
+            $("#createNewCompany").hide();
+        }
+        userCompanyID = localStorage.getItem('userCompany'); 
+        getCompanies();
+    });
+
+    function EnterCompany(id) {
+         top.location.href = '/Home/MenuPanel?id=' + id;
+    }
+
+
+    function routeAddCompay() {
+        top.location.href = '/Company/AddCompany'
+    }
+
+    function EditCompany(iD) {
+        top.location.href = '/Company/UpdateCompany?id=' + iD;
+    }
+    var iD;
+    function DeleteCompany(ID) {
+        iD = ID;
+        $("#confirmModal").modal();
+
+    }
+
+
+
+    function deleteCompany() {
+        $.post('/Company/DeleteCompany?key=' + iD, function (data) {
+
+            toastr.error('Company Deleted Successfully');
+            setTimeout(function () {
+                window.location.reload();
+                }.bind(this), 3000);
+
+        });
+    }
+
+    function getCompanies() {
+
+        $.get('@Url.Action("CurrentUserList", "Admin")', function (data) {
+            roles = data;
+            console.log(roles.result, "result roLes");
+
+            var dxdx = roles.result.filter(r => r.RoleName == 'SuperAdmin');
+            console.log(dxdx.length, "dxsdx!");
+            if (dxdx.length > 0) {
+                $.get('/Home/GetCompanies', function (data) {
+                    var comp = data;
+                    console.log(comp)
+
+                    resulT = "";
+                    console.log(Pages,'Pages');
+                    if (Pages.Update == true && Pages.Delete == true) {
+                        for (var i = 0; i < comp.length; i++) {
+                            //resulT += ' <div class="col-6"><div class="card"><div class="card-header"><h4 class=""> ' + comp[i].CompanyName +' </h4 > </div ><div class="card-body">  </div> </div><br>  </div>'
+
+
+                            resulT += ' <div class="col-md-4 stretch-card grid-margin"> <div class="card bg-gradient-primary card-img-holder text-white card_height"> <div class="card-body"> <img src="/Web/assets/images/dashboard/circle.svg" class="card-img-absolute" alt="circle-image" />  <h2 class="mb-5"> <i class="mdi mdi-home-modern menu-icon"></i> ' + comp[i].CompanyName + '  </h2> <button type="button" title="Detail" class="btn btn-gradient-success btn-rounded btn-icon" onclick="EnterCompany(' + comp[i].CompanyId + ')">  <i class="mdi mdi-open-in-new"></i> </button>&nbsp   <button type="button" title="Update Company Detail" class="btn btn-gradient-primary btn-rounded btn-icon" onclick="EditCompany(' + comp[i].CompanyId + ')">  <i class="mdi mdi-tooltip-edit"></i> </button>    &nbsp   <button type="button" title="Delete Company" class="btn btn-gradient-danger btn-rounded btn-icon" onclick="DeleteCompany(' + comp[i].CompanyId + ')">  <i class="mdi mdi-delete-forever"></i> </button>   </div> </div> </div>'
+
+                        }
+                    }
+                    else if (Pages.Update == true && Pages.Delete == false) {
+                        for (var i = 0; i < comp.length; i++) {
+                            //resulT += ' <div class="col-6"><div class="card"><div class="card-header"><h4 class=""> ' + comp[i].CompanyName +' </h4 > </div ><div class="card-body">  </div> </div><br>  </div>'
+
+
+                            resulT += ' <div class="col-md-4 stretch-card grid-margin"> <div class="card bg-gradient-primary card-img-holder text-white card_height"> <div class="card-body"> <img src="/Web/assets/images/dashboard/circle.svg" class="card-img-absolute" alt="circle-image" />  <h2 class="mb-5"> <i class="mdi mdi-home-modern menu-icon"></i> ' + comp[i].CompanyName + '  </h2> <button type="button" title="Detail" class="btn btn-gradient-success btn-rounded btn-icon" onclick="EnterCompany(' + comp[i].CompanyId + ')">  <i class="mdi mdi-open-in-new"></i> </button>&nbsp   <button type="button" title="Update Company Detail" class="btn btn-gradient-primary btn-rounded btn-icon" onclick="EditCompany(' + comp[i].CompanyId + ')">  <i class="mdi mdi-tooltip-edit"></i> </button> </div> </div> </div>'
+
+                        }
+                    }
+                    else if (Pages.Update == false && Pages.Delete == true) {
+                        for (var i = 0; i < comp.length; i++) {
+                            //resulT += ' <div class="col-6"><div class="card"><div class="card-header"><h4 class=""> ' + comp[i].CompanyName +' </h4 > </div ><div class="card-body">  </div> </div><br>  </div>'
+                             
+                            resulT += ' <div class="col-md-4 stretch-card grid-margin"> <div class="card bg-gradient-primary card-img-holder text-white card_height"> <div class="card-body"> <img src="/Web/assets/images/dashboard/circle.svg" class="card-img-absolute" alt="circle-image" />  <h2 class="mb-5"> <i class="mdi mdi-home-modern menu-icon"></i> ' + comp[i].CompanyName + '  </h2> <button type="button" title="Detail" class="btn btn-gradient-success btn-rounded btn-icon" onclick="EnterCompany(' + comp[i].CompanyId + ')">  <i class="mdi mdi-open-in-new"></i> </button>&nbsp   <button type="button" title="Delete Company" class="btn btn-gradient-danger btn-rounded btn-icon" onclick="DeleteCompany(' + comp[i].CompanyId + ')">  <i class="mdi mdi-delete-forever"></i> </button>   </div> </div> </div>'
+
+                        }
+                    }
+
+                    else if (Pages.Update == false && Pages.Delete == false) {
+                        for (var i = 0; i < comp.length; i++) {
+                            //resulT += ' <div class="col-6"><div class="card"><div class="card-header"><h4 class=""> ' + comp[i].CompanyName +' </h4 > </div ><div class="card-body">  </div> </div><br>  </div>'
+                             
+                            resulT += ' <div class="col-md-4 stretch-card grid-margin"> <div class="card bg-gradient-primary card-img-holder text-white card_height"> <div class="card-body"> <img src="/Web/assets/images/dashboard/circle.svg" class="card-img-absolute" alt="circle-image" />  <h2 class="mb-5"> <i class="mdi mdi-home-modern menu-icon"></i> ' + comp[i].CompanyName + '  </h2> <button type="button" title="Detail" class="btn btn-gradient-success btn-rounded btn-icon" onclick="EnterCompany(' + comp[i].CompanyId + ')">  <i class="mdi mdi-open-in-new"></i> </button>   </div> </div> </div>'
+
+                        }
+                    }
+                    $('#resulT').html('');
+                    $('#resulT').append(resulT);
+
+                });
+
+            }
+            else {
+                console.log('xxxxxx');
+                top.location.href = 'Home/MenuPanel?id=' + userCompanyID;
+                //$.get('/Home/GetUserCompanies', function (data) {
+                //    var comp = data;
+                //    console.log(comp)
+
+                //    resulT = "";
+                //    for (var i = 0; i < comp.length; i++) {
+                //        //resulT += ' <div class="col-6"><div class="card"><div class="card-header"><h4 class=""> ' + comp[i].CompanyName +' </h4 > </div ><div class="card-body">  </div> </div><br>  </div>'
+                //        resulT += ' <div class="col-md-4 stretch-card grid-margin"> <div class="card bg-gradient-info card-img-holder text-white card_height"> <div class="card-body"> <img src="/Web/assets/images/dashboard/circle.svg" class="card-img-absolute" alt="circle-image" />  <h2 class="mb-5"> <i class="mdi mdi-home-modern menu-icon"></i> ' + comp[i].CompanyName + ' </h2> <a class="cursor_Detail" onclick="EnterCompany(' + comp[i].CompanyId + ')"> Details </a> </div> </div> </div>'
+                //    }
+                //    $('#resulT').html('');
+                //    $('#resulT').append(resulT);
+
+                //});
+            }
+        });
+    }
+</script>
+
+<style>
+     
+        .sidebar .nav .nav-item.active > .nav-link .menu-title {
+        color: #4c5460 !important;
+        font-family: "ubuntu-regular", sans-serif !important;
+    }
+
+    .sidebar .nav .nav-item.active > .nav-link i {
+        color: #3e4b5b !important;
+    }
+
+    .cursor_Detail {
+        cursor: pointer !important;
+    }
+</style>
+
+<div class="row">
+    <div class="col-md-12">
+        @*<button type="button" title="Add New Company" class="btn btn-gradient-dark btn-rounded btn-icon" onclick="onclick=" routeAddCompay(' + comp[i].CompanyId + ')">  <i class="mdi mdi-library-plus"></i> </button>*@
+        <button type="button" id="createNewCompany" class="btn btn-info btn-icon-text float-right" onclick="routeAddCompay()"> Add New Company <i class="mdi mdi-library-plus btn-icon-append"></i>
+        </button>
+    </div>
+</div>
+<hr class="sidebar-divider d-none d-md-block">
+<div class="row" id="resulT"></div>
+
+
+<!--   Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content"> 
+            <div class="modal-body"> 
+                        <h3 class="text-danger text-center">Are you sure?</h3> 
+                        <small>Do you really want to delete company? This process cannot be undone.</small>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger btn-fw" onclick="deleteCompany()" data-dismiss="modal">Delete</button>
+                <button type="button" class="btn btn-dark btn-fw" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!--   Modal -->

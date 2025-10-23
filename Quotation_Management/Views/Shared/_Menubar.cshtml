@@ -1,0 +1,118 @@
+﻿  
+<style>
+    .submenu_ico {
+        margin-left: -1rem !important;
+        padding: 0px 10px 0px 0px;
+    }
+    .nav-link2 {
+        color: #736d63;
+        font-size: 18px;
+        line-height: 3;
+    }
+</style>
+<script>
+    var authPages;
+     var roles;
+    var menu;
+ 
+     $(function () {
+         GetPagesByRole();
+     }); 
+    function GetPagesByRole() {
+
+                //****Get Current User with roles*****
+         $.get('@Url.Action("CurrentUserList", "Admin")', function (data) {
+             roles = data;
+               console.log(roles.result, "result roLes");
+
+             // **** Get All Assigned Pages By Role ***
+            $.post('@Url.Action("GetPagePermission", "Admin")', { role: roles.result }, function (data) {
+                menu = data;
+
+                // **** Prevent duplicates ***
+                authPages = menu.reduce((unique, o) => {
+                     if (!unique.some(obj => obj.PageName === o.PageName)) {
+                         unique.push(o);
+                     }
+                     return unique;
+                }, []);
+
+                console.log(authPages, "AythPages before");
+                myfunction(authPages);
+
+                var result = "";
+
+                // **** select without Edit Screens ****
+                authPages = authPages.filter(function (el) { return !el.PageName.includes("Update") && !el.PageName.includes("Add") && !el.PageName.includes("View Report") && !el.PageType.includes("Method") && !el.PageType.includes("Flow") && !el.PageType.includes("View"); });
+                //authPages = authPages.filter(function (el) { return !el.PageName.includes("Update") || !el.PageName.includes("Add"); });
+
+                // **** select only user pages with dropdown selection from MenuList ****
+                var roleSubMenu = authPages.filter(n => n.PageType == "User");
+
+                // **** select only quotation pages with dropdown selection from MenuList ****
+                var qouoteSubMenu = authPages.filter(n => n.PageType == "QuotationItem");
+
+                  // *** Stop duplicates in child and parent navbar items ***
+                authPages = authPages.filter(item => !roleSubMenu.includes(item) && !qouoteSubMenu.includes(item));
+
+                console.log(authPages, "pagEs");
+                  // *** Simple navbar selection ****
+                 for (var p = 0; p < authPages.length; p++) {
+
+                     if (authPages.length > 0) {
+                          result += '<li class="nav-item"> <a class="nav-link" href="' + authPages[p].PageUrl + '"><span class="menu-title">' + authPages[p].PageName + '</span> <i class="mdi ' + authPages[p].Icon + ' menu-icon"></i></a></li>';
+                      }
+                  }
+
+                  if (roleSubMenu.length > 0) {
+                      result += '<li class="nav-item"><a class="nav-link" data-toggle="collapse" href="#ui-basic" aria-expanded="false" aria-controls="ui-basic"><span class="menu-title">User Management</span><i class="menu-arrow"></i> <i class="mdi mdi-account-settings menu-icon"></i> </a> <div class="collapse" id="ui-basic"><ul class="nav flex-column sub-menu">  <li class="nav-item"> ';
+                     for (var i = 0; i < roleSubMenu.length; i++) {
+                          result += ' <a class="nav-link" href="' + roleSubMenu[i].PageUrl + '">  <i class="mdi ' + roleSubMenu[i].Icon + ' menu-icon submenu_ico"></i> ' + roleSubMenu[i].PageName + '  </a>';
+                     }
+                     result += '</li></ul></div></li> ';
+                       //$('#resUlT').append(result);
+                }
+                if (qouoteSubMenu.length > 0) {
+                      result += '<li class="nav-item"><a class="nav-link" data-toggle="collapse" href="#ui-basic1" aria-expanded="false" aria-controls="ui-basic1"><span class="menu-title">Quotation Items</span><i class="menu-arrow"></i> <i class="mdi mdi-file menu-icon"></i> </a> <div class="collapse" id="ui-basic1"><ul class="nav flex-column sub-menu">  <li class="nav-item"> ';
+                    for (var i = 0; i < qouoteSubMenu.length; i++) {
+                        result += ' <a class="nav-link" href="' + qouoteSubMenu[i].PageUrl + '">  <i class="mdi ' + qouoteSubMenu[i].Icon + ' menu-icon submenu_ico"></i> ' + qouoteSubMenu[i].PageName + '  </a>';
+                     }
+                     result += '</li></ul></div></li> ';
+                 }
+                       $('#resUlT').html(result);
+
+
+            });
+
+         });
+    }
+
+
+    function myfunction(authPages) {
+         var count = 0;
+        for (var i = 0; i < authPages.length; i++) {
+            var xdx = window.location.pathname;
+             if (xdx == authPages[i].PageUrl && authPages[i].Read == true) {
+                count++
+                return authPages;
+            }
+
+        }
+         if (count == 0) {
+                 top.location.href = '/Admin/AccessDenied';
+            }
+        }
+</script>
+
+
+<nav class="sidebar sidebar-offcanvas" id="sidebar">
+    <ul class="nav">
+
+        <li class="nav-item"> <a class="nav-link" href="/"> <span class="menu-title"> Admin Panel </span> <i class="mdi mdi-account"></i></a></li>
+     @*   <li class="nav-item"> <a class="nav-link" href="/Home/Dashboard"> <span class="menu-title"> Dashboard </span> <i class="mdi mdi-view-dashboard"></i></a></li>*@
+    </ul>
+</nav>
+@***** Nav menu list div ****@
+@*<ul class="navbar-nav flex-grow-1" id="resUlT"></ul>*@
+
+

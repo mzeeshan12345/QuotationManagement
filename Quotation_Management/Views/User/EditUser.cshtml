@@ -1,0 +1,619 @@
+﻿@{
+    ViewData["Title"] = "Update User";
+}
+
+
+
+<script>
+    var companiEs = [];
+    var roles = [];
+    var regions = [];
+    var dropDownValue;
+    var UId;
+    var usr;
+    var flowStatus;
+
+  $(function () {
+      GetRoles(); 
+
+      var url_string = top.location.href
+      var url = new URL(url_string);
+      UId = url.searchParams.get('id');
+      getUserById(UId);
+      getFlowById(UId);
+    });
+
+
+    function GetRoles() {
+        $.get('@Url.Action("GetRolesS", "Admin")', function (data) {
+            roles = data;
+         });
+    }
+
+  
+
+    function GetCompanies() {
+         $.get('@Url.Action("GetCompanies", "Company")', function (data) {
+            companiEs = data;
+             console.log(companiEs, "companiEs");
+
+             $('#companyDropdown').dxSelectBox({
+                 dataSource: new DevExpress.data.ArrayStore({
+                     data: companiEs,
+                     key: 'CompanyId',
+                 }), inputAttr: {
+                     name: "CompanyId"
+                 },
+                 displayExpr: 'CompanyName',
+                 valueExpr: 'CompanyId'
+             });
+        });
+    }
+
+    function getFlowById(UId)
+    {
+        $.get('/Admin/GetFlowStatusByUser?iD=' + UId, function (data) {
+            flowStatus = data;
+            console.log(flowStatus, "flowStatus")
+            Salesrepgrid(flowStatus);
+        });
+    }
+
+    function getUserById(UId) {
+         $.get('/User/GetUserByID?userID=' + UId, function (data) {
+            console.log(data, "Data log")
+             usr = data; 
+            $('#Id').val(usr.Id);
+            $('#FirstName').val(usr.FirstName);
+            $('#LastName').val(usr.LastName);
+             $('#DateOfBirth').val(formatDate(new Date(usr.DateOfBirth)));
+             $('#Gender').val(usr.Gender);
+             $('#Company').val(usr.CompanyName);
+             $('#CompanyId').val(usr.CompanyId);
+             $('#Designation').val(usr.Designation);
+             $('#PhoneNumber').val(usr.PhoneNumber);
+             $('#Email').val(usr.Email);
+             $('#UserName').val(usr.UserName);
+             $('#UserName1').val(usr.UserName);
+
+
+
+             $.get('@Url.Action("GetRolesS", "Admin")', function (data) {
+            roles = data;
+
+             $('#rolesDataSource').dxTagBox({
+                 searchEnabled: true,
+                 placeholder: 'Choose or type role name',
+                 dataSource: new DevExpress.data.ArrayStore({
+                     data: roles,
+                     key: 'Id',
+                 }),
+                 inputAttr: {
+                     name: "Role"
+                 },
+                 displayExpr: 'Name',
+                 valueExpr: 'Name',
+                 value: usr.Role
+                 //onValueChanged(e) {
+                 //    console.log(e, "e");
+                 //    dropDownValue = e.value;
+                 //},
+                });
+             });
+
+
+             $.get('@Url.Action("GetRegions", "Admin")', function (data) {
+                 regions = data;
+
+             $('#region').dxTagBox({
+                 searchEnabled: true,
+                 placeholder: 'Choose or type region name',
+                 dataSource: new DevExpress.data.ArrayStore({
+                     data: regions,
+                     key: 'RegionId',
+                 }),
+                 inputAttr: {
+                     name: "RegionId"
+                 },
+                 displayExpr: 'Name',
+                 valueExpr: 'RegionId',
+                 value: usr.RegionId
+                 //onValueChanged(e) {
+                 //    console.log(e, "e");
+                 //    dropDownValue = e.value;
+                 //},
+                });
+             });
+
+
+
+             $.get('@Url.Action("GetActiveCompanies", "Company")', function (data) {
+            companiEs = data;
+             console.log(companiEs, "companiEs");
+
+             $('#companyDropdown').dxSelectBox({
+                 dataSource: new DevExpress.data.ArrayStore({
+                     data: companiEs,
+                     key: 'CompanyId',
+                 }), inputAttr: {
+                     name: "CompanyId"
+                 },
+                 displayExpr: 'CompanyName',
+                 valueExpr: 'CompanyId',
+                 value: usr.CompanyId
+                });
+             });
+
+         }); 
+    }
+
+    function Salesrepgrid(flowStatus) {
+
+        $("#gridContainer").dxDataGrid({
+            dataSource: flowStatus,
+            keyExpr: "AFSId",
+            showBorders: true,
+            columnAutoWidth: true,
+            allowColumnResizing: true,
+            columnHidingEnabled: true,
+            paging: {
+                pageSize: 12
+            },
+            editing: {
+                mode: 'cell',
+                allowUpdating: true,
+                useIcons: true
+            },
+            columnsAutoWidth: true,
+            showBorders: true,
+            columns: [
+                {
+                    dataField: "FlowStatus",
+                    allowEditing: false
+                },
+                {
+                    dataField: "ManagerApproval",
+                    caption: "Manager",
+                    dataType: "boolean"
+                },
+                {
+                    dataField: "AdminApproval",
+                    caption: "Admin",
+                    dataType: "boolean"
+                }]
+        });
+    }
+
+    $(function () {
+        $('#ConfirmPassword').on('keyup', function () {
+            if (!($('#Password').val() == $('#ConfirmPassword').val())) {
+                $('#message').html('Passwords do not match.').css('color', 'red');
+            } else
+                $('#message').html('');
+        })
+    });
+    //function checkValidations() {
+
+    //    if (!$('#FirstName').val()) {
+    //        toastr.error('First Name is required');
+    //    }
+    //    if (!$('#LastName').val()) {
+
+    //        toastr.error('Last Name is required');
+    //    }
+
+    //    if (!$('#Company').val()) {
+
+    //        toastr.error('Company is required');
+    //    }
+
+    //    if (!$('#PhoneNumber').val()) {
+
+    //        toastr.error('Phone is required');
+    //    }
+
+
+    //    if (!$('#Email').val()) {
+
+    //        toastr.error('Email is required');
+    //    }
+
+
+    //    if (!$('#Designation').val()) {
+
+    //        toastr.error('Designation is required');
+    //    }
+
+    //    //if (!$('#DateOfBirth').val()) {
+    //    //    toastr.error('Dob is required');
+    //    //}
+    //    if (!$('#Gender').val()) {
+    //        toastr.error('Gender is required');
+    //    }
+    //    if (!$('#Role').val()) {
+    //        toastr.error('Role is required');
+    //    }
+
+
+    //}
+
+
+
+    function checkValidations() {
+
+        if (!$('#FirstName').val()) {
+            toastr.error('First Name is required');
+        }
+        if (!$('#LastName').val()) {
+
+            toastr.error('Last Name is required');
+        }
+
+        //if (!$('#Company').val()) {
+
+        //    toastr.error('Company is required');
+        //}
+
+        if (!$('#PhoneNumber').val()) {
+
+            toastr.error('Phone is required');
+        }
+
+        if (!$('#Email').val()) {
+
+            toastr.error('Email is required');
+        }
+        if (!$('#Designation').val()) {
+
+            toastr.error('Designation is required');
+        }
+        if (!$('#Gender').val()) {
+
+            toastr.error('Gender is required');
+        }
+
+        if (!$('#DateOfBirth').val()) {
+            toastr.error('Dob is required');
+        }
+        if (!$('#UserName').val()) {
+            toastr.error('UserName is required');
+        }
+
+
+    }
+
+    function checkPasswordValidations() {
+
+        if (!$('#Password').val()) {
+            toastr.error('Password is required');
+        }
+        if (!$('#ConfirmPassword').val()) {
+
+            toastr.error('Confirm Password is required');
+        }
+
+
+    }
+
+    function _calculateAge() {
+        var today = new Date();
+        var dob = new Date($('#DateOfBirth').val());
+        var age = today.getFullYear() - dob.getFullYear();
+        if (age < 13) {
+            //$('#DobError').html('Your age must be 18+');
+            toastr.error('Your age must be 13+');
+            return false;
+        }
+        else {
+            return true;
+        }
+
+    }
+
+    function emailValidation() {
+        value = document.getElementById('Email').value;
+        apos = value.indexOf("@@");
+        dotpos = value.lastIndexOf(".");
+        lastpos = value.length - 1;
+        if (apos < 1 || dotpos - apos < 2 || lastpos - dotpos > 3 || lastpos - dotpos < 2) {
+            //$('#EmailError').html('Invalid Email Address');
+            toastr.error('Invalid Email Address');
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    function onSubmit() {
+        var d = document.getElementById('userInfo');
+        if (d.checkValidity() && emailValidation() == true && validateMobile() == true) {
+            var model = $('#userInfo').serialize()
+            console.log(model, "model"); 
+            //if (model.Role == "" || model.Role == null) {
+            //    toastr.error('Role is required');
+            //} else {
+
+            model.Id = UId;
+            //$.post('/User/UpdateRegisteration?' + model, { roles: dropDownValue }, function (data) {
+            $.post('/User/UpdateRegisteration?' + model, { FlowStatus: flowStatus }, function (data) {
+                 console.log(data, "Return");
+                 console.log(data.result, "data.result");
+                 if (data.result == true) {
+                    toastr.success('Success');
+                    setTimeout(function () {
+                        window.location.reload();
+                    }, 3000);
+                }
+                else {
+                    setTimeout(function () {
+                        if (data.Error) {
+                        toastr.error(data.Error);
+                        }
+                        toastr.error('Error!');
+                    }, 2000);
+
+                };
+            });
+            //}
+        }
+        checkValidations();
+    }
+
+
+    function onPasswordUpdate() {
+        var p = document.getElementById('passwordInfo');
+        if (p.checkValidity()) {
+            var model = $('#passwordInfo').serialize()
+            console.log(model, "model");
+            $.post('/User/UpdatePassword?' + model, function (data) {
+                console.log(data, "Return");
+                 if (data.Succeeded == true) {
+                    toastr.success('Success');
+                    setTimeout(function () {
+                        window.location.reload();
+                        top.location.href = '/User';
+                    }, 3000);
+                }
+                else {
+                    setTimeout(function () {
+                        toastr.error('Error!');
+                    }, 2000);
+
+                };
+            });
+        }
+        checkPasswordValidations();
+    }
+
+
+    function formatDate(date) {
+        var day = date.getDate();
+        var month = date.getMonth() + 1;
+        var year = date.getFullYear();
+
+        var formatted = year + "-" + (month < 10 ? "0" : "") + month + "-" + (day < 10 ? "0" : "") + day;
+        return formatted;
+    }
+
+    function formatTime(date) {
+        var hour = date.getHours();
+        var min = date.getMinutes();
+
+        var formatted = hour + ":" + (min < 10 ? "0" : "") + min;
+        return formatted;
+    }
+
+
+    function validateMobile() {
+
+        reg = /^(?:02|03|04|06|07|09|050|051|052|054|055|056|058)[0-9]{7}$/;
+
+        if (!reg.test($('#PhoneNumber').val())) {
+            toastr.error('Invalid mobile number');
+            return false;
+        }
+        else {
+            return true;
+        }
+    }
+
+</script>
+
+
+<style>
+    .dx-texteditor.dx-editor-outlined {
+        border: 1px solid #b5b5b5;
+        border-radius: 0px !important;
+        height: 47% !important;
+    }
+</style>
+
+
+
+<div class="row">
+    <div class="col-3">
+        <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+            <a class="nav-link active" id="v-pills-home-tab" data-toggle="pill" href="#v-pills-home" role="tab" aria-controls="v-pills-home" aria-selected="true">User Update</a>
+            <a class="nav-link" id="v-pills-profile-tab" data-toggle="pill" href="#v-pills-profile" role="tab" aria-controls="v-pills-profile" aria-selected="false">Password Update</a>
+        </div>
+    </div>
+    <div class="col-9">
+        <div class="tab-content" id="v-pills-tabContent">
+            <div class="tab-pane fade show active" id="v-pills-home" role="tabpanel" aria-labelledby="v-pills-home-tab">
+
+                <div class="card shadow mb-4">
+                    <!-- Card Header - Accordion -->
+                    <a href="#collapseCardExample" class="d-block card-header py-3" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="collapseCardExample">
+                        <h6 class="m-0 font-weight-bold text-primary">Update User</h6>
+                    </a>
+                    <!-- Card Content - Collapse -->
+                    <div class="collapse show" id="collapseCardExample" style="">
+                        <div class="card-body">
+
+                            <form id="userInfo" class="forms-sample" novalidate="">
+                                <input type="hidden" name="Id" id="Id" />
+                                <div class="form-row">
+                                    <div class="form-group col-md-6">
+                                        <label for="FirstName" class="col-form-label">First Name <em class="text-danger">*</em></label>
+                                        @*<input type="text" class="form-control capital" id="FirstName" name="FirstName" required>*@
+                                        <input type="text" class="form-control" id="FirstName" name="FirstName" placeholder="FIRST NAME" required>
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label for="LastName" class="col-form-label">Last Name <em class="text-danger">*</em></label>
+                                        <input type="text" class="form-control" id="LastName" name="LastName" placeholder="LAST NAME" required>
+
+                                    </div>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group col-md-6">
+                                        <label for="staticEmail" class="col-form-label">Email <em class="text-danger">*</em></label>
+
+                                        <input type="email" class="form-control" name="Email" id="Email" placeholder="example@domain.com" onchange="emailValidation()" required>
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label for="Phone" class="col-form-label">Phone <em class="text-danger">*</em></label>
+                                        <input type="text" id="PhoneNumber" name="PhoneNumber" maxlength="10" placeholder="0542456789" required onchange="validateMobile()" class="form-control">
+
+                                    </div>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group col-md-6">
+                                        <label for="staticEmail" class="col-form-label">Date of Birth <em class="text-danger">*</em></label>
+                                        <input type="date" id="DateOfBirth" name="DateOfBirth" required onchange="_calculateAge()" class="form-control">
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label for="staticGender" class="col-form-label">Gender <em class="text-danger">*</em></label>
+                                        <select class="form-control" id="Gender" name="Gender" required>
+                                            <option value="Male"> Male </option>
+                                            <option value="Female"> Female </option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group col-md-6">
+                                        <label class="col-form-label">User Company  <em class="text-danger">*</em></label>
+                                        <div id="companyDropdown"></div>
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label for="staticEmail" class="col-form-label">Designation <em class="text-danger">*</em></label>
+                                        <input type="text" class="form-control" id="Designation" name="Designation" placeholder="DESIGNATION" required>
+                                    </div>
+                                </div>
+
+                                <hr class="sidebar-divider d-none d-md-block">
+
+                                <h3 class="m-0 font-weight-bold text-primary">User Login Info</h3> <br />
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label>User Name  <code>*</code></label>
+                                            <input type="text" class="form-control" name="UserName" id="UserName" required placeholder="Enter User Name">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label>Roles </label>
+                                            <div id="rolesDataSource"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label>Region </label>
+                                            <div id="region"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                <hr class="sidebar-divider d-none d-md-block">
+
+                                <h3 class="m-0 font-weight-bold text-primary">Flow Approvals</h3> <br />
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div id="gridContainer"></div>
+                                    </div>
+                                </div>
+                                <hr class="sidebar-divider d-none d-md-block">
+
+                                <div class="row">
+                                    <div class="col-md-3"></div>
+                                    <div class="col-md-6">
+                                        <button type="button" class="btn btn-gradient-info mr-2" onclick="onSubmit()">Update</button>
+                                        <button type="reset" class="btn btn-gradient-secondary mr-2">Reset</button>
+                                    </div>
+                                    <div class="col-md-3"></div>
+                                </div>
+
+                            </form>
+
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+            <div class="tab-pane fade" id="v-pills-profile" role="tabpanel" aria-labelledby="v-pills-profile-tab">
+
+                <div class="card shadow mb-4">
+                    <!-- Card Header - Accordion -->
+                    <a href="#collapseCardExample" class="d-block card-header py-3" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="collapseCardExample">
+                        <h6 class="m-0 font-weight-bold text-primary">Update User</h6>
+                    </a>
+                    <!-- Card Content - Collapse -->
+                    <div class="collapse show" id="collapseCardExample" style="">
+                        <div class="card-body">
+
+                            <form id="passwordInfo" novalidate="">
+                                <input type="hidden" name="Id" id="Id" />
+                                <div class="form-row">
+                                    <div class="form-group col-md-6">
+                                        <label for="Password" class="col-form-label">User Name</label>
+                                        <input type="text" readonly class="form-control" id="UserName1" name="UserName" required>
+                                    </div>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group col-md-6">
+                                        <label for="Password" class="col-form-label">Password <em class="text-danger">*</em></label>
+                                        <input type="password" class="form-control" id="Password" name="Password" placeholder="Enter new Password" required>
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label for="CPassword" class="col-form-label">Confirm Password <em class="text-danger">*</em></label>
+                                        <input type="password" class="form-control" id="ConfirmPassword" name="ConfirmPassword" placeholder="Re-enter your Password" required>
+
+                                    </div>
+                                </div>
+
+
+                                <hr class="sidebar-divider d-none d-md-block">
+                                <div class="row">
+                                    <div class="col-md-3"></div>
+                                    <div class="col-md-6">
+                                        <button type="button" class="btn btn-gradient-info mr-2" onclick="onPasswordUpdate()">Update</button>
+                                        <button type="reset" class="btn btn-gradient-secondary mr-2">Reset</button>
+                                    </div>
+                                    <div class="col-md-3"></div>
+                                </div>
+                                <hr class="sidebar-divider d-none d-md-block" style="visibility:hidden;">
+ 
+                            </form>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+

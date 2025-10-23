@@ -1,0 +1,161 @@
+﻿ @{
+    ViewData["Title"] = "Users";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<script>
+
+    var users = [];
+    var cmps = [];
+    var CompanyID;
+    var Pages;
+
+    $(function () {
+        CompanyID = localStorage.getItem('CompanyId');
+        var getPages = JSON.parse(localStorage.getItem('Pages'));
+        Pages = getPages.find(dx => dx.PageName == "Users");
+
+        getUsers(CompanyID);
+    });
+
+    function getUsers(CompanyID) {
+        $.get('/User/GetUsers?companyId=' + CompanyID , function (data) {
+            users = data;
+            console.log(users)
+            usergrid(users);
+        });
+    }
+
+    function usergrid(users) {
+        var test = false;
+        if (Pages && Pages.Create == true) {
+            test = true;
+        }
+
+        $.get('/Company/GetActiveCompanies', function (data) {
+            cmps = data;
+       
+      $("#gridContainer").dxDataGrid({
+
+            dataSource: users,
+            keyExpr: "Id",
+            showBorders: true,
+            paging: {
+                pageSize: 10
+            },
+            columnsAutoWidth: true,
+            showBorders: true,
+            filterRow: {
+                visible: true,
+                applyFilter: "auto"
+            },
+            searchPanel: {
+                visible: true,
+                width: 240,
+                placeholder: "Search..."
+            },
+
+            editing: {
+                mode: "row",
+                allowUpdating(e) {
+                    if (Pages.Update == true) {
+                        return e;
+                    }
+                },
+                allowAdding: true,
+                useIcons: true
+          },
+          export: {
+              enabled: true,
+          },
+          onExporting: function (e) {
+               e.fileName = "Users"
+          },
+            headerFilter: {
+                visible: true
+            },
+            columns: [
+                {
+                    dataField: "UserName"
+                },
+                {
+                    dataField: "Name"
+                },
+                {
+                    dataField: "Email"
+                },
+                {
+                    dataField: "PhoneNumber"
+                },
+                {
+                    dataField: "Gender"
+                },
+                {
+                    dataField: 'CompanyId',
+                    caption: 'Company', 
+                    lookup: {
+                        dataSource: cmps,
+                        displayExpr: 'CompanyName',
+                        valueExpr: 'CompanyId',
+                    },
+                },
+                {
+                    dataField: "Designation"
+              },
+          {
+                    type: "buttons",
+                    buttons: ["edit", "delete",
+                        {
+                            hint: "Edit User",
+                            icon: "update",
+                            onClick: function (e) {
+                                console.log(e);
+                                var user = e.key;
+                                console.log(user, "iD");
+                                   //top.location.href = '/Administration/EditUser?id=' + user;
+                            }
+                        }]
+                }],
+          toolbar: {
+              items: [
+                  {
+                      name: 'addRowButton',
+                      showText: 'always',
+                      options: {
+                          text: 'Add New User',
+                          type: 'default',
+                          visible: test,
+                          onClick: function () {
+                              top.location.href = '/Admin/Signup';
+                          }
+                      },
+                  },
+
+              ],
+          },
+            onEditingStart: function (e) {
+                console.log(e);
+                var user = e.data.Id;
+                console.log(user, "iD");
+               top.location.href = '/User/EditUser?id=' + user;
+            } 
+      });
+
+        });
+        }
+</script>
+
+
+<div class="card shadow mb-4">
+    <!-- Card Header - Accordion -->
+    <a href="#collapseCardExample" class="d-block card-header py-3" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="collapseCardExample">
+        <h6 class="m-0 font-weight-bold text-primary">Users</h6>
+    </a>
+    <!-- Card Content - Collapse -->
+    <div class="collapse show" id="collapseCardExample" style="">
+        <div class="card-body">
+            <div id="gridContainer"></div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,584 @@
+﻿
+@{
+    ViewData["Title"] = "Items";
+}
+
+<script>
+    var Itemsdata = [];
+    var companies = [];
+
+    var regionDetail;
+    var regions;
+    var regions = [];
+    var companiEs = [];
+    var dropDownValue;
+    var regiondropDown;
+    var regionudropDown;
+    var regiondropDownName;
+    var itmData;
+    var Pages;
+    var pageRegion;
+    var uregionDetail;
+    var CompanyID = 0;
+
+    $(function () {
+        var getPages = JSON.parse(localStorage.getItem('Pages'));
+        Pages = getPages.find(dx => dx.PageName == "Items");
+        pageRegion = getPages.find(dx => dx.PageName == "Item Region");
+        if (Pages.Create == true) {
+            $("#btnSubmitCreate").show();
+        }
+        else {
+            $("#btnSubmitCreate").hide();
+        }
+
+        CompanyID = localStorage.getItem('CompanyId'); 
+        getitems(CompanyID);
+        GetRegions();
+        GetCompanies();
+    });
+
+
+      function GetCompanies() {
+          $.get('@Url.Action("GetActiveCompanies", "Company")', function (data) {
+            companiEs = data;
+
+             $('#companyDropdown').dxSelectBox({
+                 dataSource: new DevExpress.data.ArrayStore({
+                     data: companiEs,
+                     key: 'CompanyId',
+                 }), inputAttr: {
+                     id: "compaNiEs",
+                     name: "CompanyId"
+                 },
+                 elementAttr: {
+                        id: "compaNiEs",
+                        class: "dxSelect_Box"
+                 },
+                 displayExpr: 'CompanyName',
+                 valueExpr: 'CompanyId'
+             });
+        });
+    }
+
+
+        function GetRegions() {
+         $.get('@Url.Action("GetRegions", "Admin")', function (data) {
+             regions = data;
+             console.log(regions, "Regions");
+             $('#userRegions').dxTagBox({
+                 searchEnabled: true,
+                 placeholder: 'Choose or type Region',
+                 dataSource: new DevExpress.data.ArrayStore({
+                     data: regions,
+                     key: 'RegionId',
+                 }),
+                 inputAttr: {
+                     id: "regioNs",
+                     name: "MainItemRegions"
+                 },
+                 elementAttr: {
+                     id: "regioNs",
+                     class: "dxTag_Box"
+                 },
+                 displayExpr: 'Name',
+                 valueExpr: 'RegionId',
+                 showSelectionControls: true,
+                 maxDisplayedTags: 3,
+                 onValueChanged(e) {  
+                     regiondropDown = e.value;
+                 },
+             });
+        });
+    }
+
+    function getitems(CompanyID) {
+        //$.get('/Quotation/GetMainItems', function (data) {
+        $.get('/Quotation/GetMainItemsList?CompanyId=' + CompanyID, function (data) {
+            Itemsdata = data;
+            console.log(Itemsdata)
+            Itemgrid(Itemsdata);
+        });
+    }
+
+    function Itemgrid(Itemsdata) {
+        var test = false;
+        if (pageRegion && pageRegion.Create == true) {
+            test = true;
+        }
+
+        $.get('/Company/GetActiveCompanies', function (data) {
+            companies = data;
+
+            $("#gridContainer").dxDataGrid({
+                dataSource: Itemsdata,
+                keyExpr: "MainItemId",
+                showBorders: true,
+                columnAutoWidth: true,
+                allowColumnResizing: true,
+                columnHidingEnabled: true,
+                hoverStateEnabled: true,
+                paging: {
+                    pageSize: 10
+                },
+                editing: {
+                    mode: 'row',
+                    allowAdding: false,
+                    allowUpdating(e) {
+                        if (Pages.Update == true) {
+                            return e;
+                        }
+                    },
+                    useIcons: true
+                },
+                columnsAutoWidth: true,
+                showBorders: true,
+                filterRow: {
+                    visible: true,
+                    applyFilter: "auto"
+                },
+                searchPanel: {
+                    visible: true,
+                    placeholder: "Search..."
+                },
+                export: {
+                    enabled: true,
+                },
+                onExporting: function (e) {
+                    console.log(e, "e");
+                    e.fileName = "Items List"
+                },
+                selection: { mode: "single" },
+                headerFilter: {
+                    visible: true
+                },
+                columns: [
+                    {
+                        dataField: "MainItemId",
+                        allowEditing: false
+                    },
+                    //{
+                    //    dataField: 'CompanyId',
+                    //    caption: 'Company',
+                    //    validationRules: [{ type: 'required' }],
+                    //    lookup: {
+                    //        dataSource: companies,
+                    //        displayExpr: 'CompanyName',
+                    //        valueExpr: 'CompanyId',
+                    //    },
+                    //},
+                    {
+                        dataField: "Name",
+                        caption: "Item Name",
+                        validationRules: [{ type: 'required' }],
+                    }],
+                onRowInserted: function (e) {
+                    var model = e.data;
+                    model.CompanyId = CompanyID;
+                    console.log(model, "moDel");
+                    $.post('/Quotation/AddMainItem', { model, model }, function (data) {
+                        console.log(data);
+                        if (data) {
+                            toastr.success('Added New Item Successfully');
+                        }
+                    });
+                },
+                onRowUpdated: function (e) {
+                    var model = e.data;
+                    console.log(model, "moDel");
+                    $.post('/Quotation/UpdateMainItem', { model, model }, function (data) {
+                        console.log(data);
+                        if (data) {
+                            toastr.success('Update Item Successfully');
+                        }
+                    });
+                },
+                onRowRemoved: function (e) {
+                    console.log(e);
+                    var key = e.data.Id;
+                    $.post('/Quotation/DeleteMainItem?key=' + key, function (data) { 
+                            toastr.error('Deleted Successfully'); 
+                    });
+                },
+                masterDetail: {
+                    enabled: true,
+                    template: function (container, options) {
+                        console.log(options);
+                        $.get('/Quotation/GetMainItemRegions?id=' + options.data.MainItemId, function (data) {
+                           regionDetail = data;
+                            console.log(regionDetail,"regionDetail");
+
+                            $.get('/Quotation/Getregions', function (data) {
+                            regions = data;
+
+                            $('<div>')
+                            $("<div>")
+                                .dxDataGrid({
+                                    columnAutoWidth: true,
+                                    showBorders: true,
+                                    headerFilter: {
+                                        visible: true
+                                    },
+                                    editing: {
+                                        mode: "cell",
+                                        allowUpdating(e) {
+                                            if (pageRegion && pageRegion.Update == true) {
+                                                return e;
+                                            }
+                                        },
+                                        allowDeleting(e) {
+                                            if (pageRegion && pageRegion.Delete == true) {
+                                                return e;
+                                            }
+                                        },
+                                        allowAdding: true,
+                                        useIcons: true
+                                    },
+                                    columns: [
+                                        {
+                                            dataField: 'RegionId',
+                                            caption: 'Region',
+                                            lookup: {
+                                                dataSource: regions,
+                                                displayExpr: 'Name',
+                                                valueExpr: 'RegionId',
+                                            },
+                                        }],
+
+                                    toolbar: {
+                                        items: [
+                                            {
+                                                name: 'addRowButton',
+                                                showText: 'always',
+                                                options: {
+                                                    text: 'Add New Region',
+                                                    type: 'default',
+                                                    visible: test,
+                                                },
+                                            },
+
+                                        ],
+                                    },
+
+                                    onRowInserted: function (e) { 
+                                        var model = e.data;
+                                        model.MainItemId = options.data.MainItemId;
+                                        console.log(model, "moDel");
+                                        $.post('/Quotation/AddMainRegion', { model, model }, function (data) {
+                                            console.log(data);
+                                            if (data) {
+                                                toastr.success('Added New Item Successfully');
+                                            }
+                                        });
+                                    },
+                                    onRowUpdated: function (e) {
+                                        var model = e.data;
+                                        console.log(model, "moDel");
+                                        $.post('/Quotation/UpdateMainRegion', { model, model }, function (data) {
+                                            console.log(data);
+                                            if (data) {
+                                                toastr.success('Update Item Successfully');
+                                            }
+                                        });
+                                    },
+                                    onRowRemoved: function (e) {
+                                        console.log(e);
+                                        var key = e.data.Id;
+                                        $.post('/Quotation/DeleteMainRegion?key=' + key, function (data) {
+                                            if (data) {
+                                                toastr.error('Deleted Successfully');
+                                            }
+                                        });
+                                    },
+                                    dataSource: new DevExpress.data.DataSource({
+                                        store: new DevExpress.data.ArrayStore({
+                                            data: regionDetail
+                                        }),
+                                    })
+                                }).appendTo(container);
+                        });
+                    });
+                }
+                },
+
+                @*onEditingStart: function (e) {
+                    console.log(e);
+                    var result = "";
+                    $('#exampleModalCenter2').modal('show');
+                    var mod = e.data.MainItemId;
+                    console.log(mod, "iD");
+                    $.get('/Quotation/GetMainItem?id=' + mod, function (data) {
+                        itmData = data;
+                        console.log(itmData, "mITems");
+                        MainItemId = itmData.MainItemId;
+                        $('#Name1').val(itmData.Name);
+                        $('#MainItemId').val(itmData.MainItemId);
+
+
+                        $.get('@Url.Action("GetActiveCompanies", "Company")', function (data) {
+                            var ucompaniEs = data;
+
+                            $('#companyUDropdown').dxSelectBox({
+                                dataSource: new DevExpress.data.ArrayStore({
+                                    data: ucompaniEs,
+                                    key: 'CompanyId',
+                                }), inputAttr: {
+                                    id: "ucompaNiEs",
+                                    name: "CompanyId"
+                                },
+                                elementAttr: {
+                                    id: "ucompaNiEs",
+                                    class: "dxSelect_Box"
+                                },
+                                displayExpr: 'CompanyName',
+                                valueExpr: 'CompanyId',
+                                value: itmData.CompanyId,
+                            });
+                        });
+
+
+                        $.get('@Url.Action("GetRegions", "Admin")', function (data) {
+                            var uregions = data;
+                            console.log(regions, "Regions");
+                            $('#userURegions').dxTagBox({
+                                searchEnabled: true,
+                                placeholder: 'Choose or type Region',
+                                dataSource: new DevExpress.data.ArrayStore({
+                                    data: uregions,
+                                    key: 'RegionId',
+                                }),
+                                inputAttr: {
+                                    id: "uregioNs",
+                                    name: "MainItemRegions"
+                                },
+                                elementAttr: {
+                                    id: "uregioNs",
+                                    class: "dxTag_Box"
+                                },
+                                displayExpr: 'Name',
+                                valueExpr: 'RegionId',
+                                //value: itmData.CompanyId,
+                                showSelectionControls: true,
+                                maxDisplayedTags: 3,
+                                onValueChanged(e) {
+                                    regionudropDown = e.value;
+                                },
+                            });
+                        });
+                  
+                        $.get('/Quotation/GetCurrentItemRegions?id=' + itmData.MainItemId, function (data) {
+                        var xdx = data;
+                            result = "";
+                        result += '<select class="form-select" size="3" aria-label="size 3 select example"> ';
+                        for (var i = 0; i < xdx.length; i++) {
+                            result += ' <option value="' + xdx[i].RegionId + '">' + xdx[i].Name + '</option>';
+                        }
+                        result += '</select>';
+
+                         $('#resUlT1').append(result);
+                    });
+
+                    });
+                }*@
+                
+            }).dxDataGrid("instance");
+
+            $('.dx-datagrid-search-panel').removeClass('dx-state-disabled');
+            $('div.dx-texteditor-input-container > input.dx-texteditor-input');
+        });
+    }
+
+
+    function onUpdate() { 
+        var model = $('#mainItemUpdateForm').serialize()
+        console.log(model, "model");
+        console.log(regionudropDown, "regiondropDown");
+        model.ItemRegions = regiondropDown;
+        $.post('/Quotation/EditMainItems?' + model, { regions: regionudropDown }, function (data) {
+            console.log(data.result, "Return");
+            if (data.result == true) {
+                toastr.success('Success');
+                setTimeout(function () {
+                    window.location.reload();
+                }, 3000);
+            }
+            else {
+                setTimeout(function () {
+                    toastr.error('Error!');
+                }, 2000);
+
+            };
+        }); 
+    }
+
+    function onSubmit() {
+       // var d = document.getElementById('mainItemForm');
+        //if (d.checkValidity() && emailValidation() == true && validateMobile() == true) {
+        document.getElementById('CompanyId').value = CompanyID;
+            var model = $('#mainItemForm').serialize()
+            //console.log(CompanyID, "Company ID");
+            //model.CompanyId = CompanyID;
+            console.log(model, "model");
+            console.log(regiondropDown, "regiondropDown");
+            model.ItemRegions = regiondropDown;
+
+        $.post('/Quotation/CreateMainItems?' + model, {regions: regiondropDown }, function (data) {
+                console.log(data, "Return");
+            if (data) {
+                toastr.success(data.result);
+                    setTimeout(function () {
+                        window.location.reload();
+                    }, 3000);
+                }
+                else {
+                    setTimeout(function () {
+                        toastr.error('Error!');
+                    }, 2000);
+
+                };
+            });
+
+
+        //}
+        //checkValidations();
+    }
+
+ 
+</script>
+
+<style>
+
+    .dxSelect_Box {
+        height: 70% !important;
+        border: 1px solid #bfbfbf !important;
+    }
+
+    .dxTag_Box {
+        height: 46px !important;
+        border: 1px solid #bfbfbf !important;
+    }
+    .mrt_9 {
+        margin-top: 9% !important;
+    }
+</style>
+
+<div class="row">
+    <div class="col-md-12 grid-margin stretch-card">
+        <div class="card">
+            <!-- Card Header - Accordion -->
+            <div class="card-header">
+                <h3 class="m-0 font-weight-bold text-primary">Add New Item</h3>
+            </div>
+            <div class="card-body">
+
+                <form id="mainItemForm" class="forms-sample" novalidate="">
+                    <div class="form-row">
+                        <input type="hidden" class="form-control" id="CompanyId" name="CompanyId">
+                        @*<div class="form-group col-md-3">
+                        <label> Company <em class="text-danger">*</em></label>
+                        <div id="companyDropdown"></div>
+                    </div>*@
+                        <div class="form-group col-md-3">
+                            <label for="staticEmail" class="">Item <em class="text-danger">*</em></label>
+                            <input type="text" class="form-control" id="Name" name="Name" placeholder="Item Name" required>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Regions </label>
+                                <div id="userRegions"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <button type="button" class="btn btn-gradient-info mr-2 mrt_9" id="btnSubmitCreate" onclick="onSubmit()">Save</button>
+                            </div>
+                        </div>
+                    </div>
+
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title"> Items</h4>
+
+                <div id="gridContainer"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Modal-2 -->
+<div class="modal fade bd-example-modal-lg2" id="exampleModalCenter2" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered  modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Update Item</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="mainItemUpdateForm" class="forms-sample" novalidate="">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-body">
+                                    <input type="hidden" id="MainItemId" name="MainItemId" />
+                                    <div class="form-row">
+                                        <div class="form-group col-md-10">
+
+                                            <div id="resUlT1"></div>
+                                            </div>
+                                            </div>
+
+                                            <div class="form-row">
+                                                <div class="form-group col-md-4">
+                                                    <label> Company <em class="text-danger">*</em></label>
+                                                    <div id="companyUDropdown"></div>
+                                                </div>
+                                                <div class="form-group col-md-4">
+                                                    <label for="staticEmail" class="">Item <em class="text-danger">*</em></label>
+                                                    <input type="text" class="form-control" id="Name1" name="Name" placeholder="Item Name" required>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label>Regions </label>
+                                                        <div id="userURegions"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            @*<hr class="sidebar-divider d-none d-md-block">
+            <div class="row">
+                <div class="col-md-4"></div>
+                <div class="col-md-4">
+                    <button type="button" class="btn btn-gradient-info mr-2" id="btnSubmitUpdate" onclick="onSubmit()">Update</button>
+                </div>
+                <div class="col-md-4"></div>
+            </div>*@
+                                        </div>
+                                    </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-gradient-info mr-2" id="btnSubmitUpdate" onclick="onUpdate()">Update</button>
+
+                    <button type="button" class="btn btn-primary" id="cloSeModal">Close</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+ 

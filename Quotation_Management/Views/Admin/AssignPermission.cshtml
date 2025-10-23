@@ -1,0 +1,148 @@
+﻿@{
+    var roles = (IEnumerable<SelectListItem>)ViewData["Roles"];
+}
+<script>
+
+    simpleProducts = [];
+    arrayPages = [];
+    var input;
+
+
+    $(function () {
+        GetPages();
+    });
+
+    function GetPages() {
+
+        $.get('@Url.Action("AllPages", "Admin")', function (data) {
+            arrayPages = data;
+            console.log(arrayPages, "arrayPages");
+        });
+        }
+
+
+    function GetPagesByRole(roles) { 
+        $("#showBtn").css("visibility", "visible");
+         input = $(roles).val();
+        $.get('@Url.Action("GetAppPages", "Admin")', { role: input}, function (data) {
+            var selectedPages = data; 
+            simpleProducts = Object.values(arrayPages.concat(selectedPages).reduce((r, o) => {
+                r[o.AppPageId] = o;
+                return r;
+            }, {}));
+
+            Pagesgrid(simpleProducts);  
+        });
+    }
+
+
+    function Pagesgrid(simpleProducts) {
+
+        $("#gridContainer").dxDataGrid({
+            dataSource: simpleProducts,
+            keyExpr: "AppPageId",
+            showBorders: true,
+            columnAutoWidth: true,
+            allowColumnResizing: true,
+            columnHidingEnabled: true,
+            paging: {
+                pageSize: 5
+            },
+            editing: {
+                mode: 'cell',
+                allowUpdating: true,
+                allowDeleting: false,
+                useIcons: true
+            },
+            columnsAutoWidth: true,
+            showBorders: true,
+            filterRow: {
+                visible: true,
+                applyFilter: "auto"
+            },
+            searchPanel: {
+                visible: true,
+                placeholder: "Search..."
+            },
+            //export: {
+            //    enabled: true,
+            //},
+            //onExporting: function (e) {
+            //    console.log(e, "e");
+            //    e.fileName = "Users List"
+            //},
+            headerFilter: {
+                visible: true
+            },
+            columns: [
+                {
+                    dataField: "AppPageId",
+                    allowEditing: false
+                },
+                {
+                    dataField: "PageName",
+                    allowEditing: false
+                },
+                {
+                    dataField: "PageType",
+                    allowEditing: false
+                },
+                {
+                    dataField: "Read", 
+                }
+                 
+            ]
+        });
+    }
+
+
+    function onSubmit(model){
+        console.log(input, "input");
+        console.log(model);
+
+        $.post('/Admin/AddPagePermission?roleId=' + input, { permission: model }, function (data) {
+            console.log(data, "Data Return");
+
+            if (data) {
+                toastr.success('Add Successfully');
+                    setTimeout(function () {
+                        location.reload();
+                    }.bind(this), 3000);
+                } 
+        });
+    }
+
+</script>
+<div class="card shadow mb-4">
+    <!-- Card Header - Accordion -->
+    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary">Assign Permission</h6>
+    </div>
+    <!-- Card Content - Collapse -->
+    <div class="collapse show" id="collapseCardExample" style="">
+        <div class="card-body">
+            <div class="form-row">
+                <div class="form-group col-md-4">
+                    <label for="status">Roles</label>
+                    @Html.DropDownList("Id", roles, "Select Role", new { @class = "form-control", @name = "Name", @id = "Id", @onchange= "GetPagesByRole(this)" })
+                    
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group col-md-12">
+             
+                    <div id="gridContainer"></div>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group col-md-4"></div>
+                <div class="form-group col-md-4">
+                    <button class="btn btn-info" id="showBtn" type="button" style="visibility: hidden;" onclick="onSubmit(simpleProducts)">Assign </button>
+                </div>
+                <div class="form-group col-md-4"></div>
+            </div>
+        </div>
+    </div>
+</div>

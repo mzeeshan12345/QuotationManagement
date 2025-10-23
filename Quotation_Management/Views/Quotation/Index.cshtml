@@ -1,0 +1,867 @@
+﻿
+@{
+    ViewData["Title"] = "Quotation";
+}
+
+<script>
+    var quotdata = [];
+    var quotes;
+    var quotesDetail;
+    var tc;
+    var url = "";
+    var cv = "";
+    var date;
+    var quotationData;
+
+    var comp;
+    var clients;
+    var users;
+
+    var isFile;
+    var comp1;
+    var clients1;
+    var users1;
+    var xdx;
+    var Pages; 
+    var repoRt;
+    var salesRepid;
+    var getPages;
+
+    $(function () {
+        getQuotes();
+        getUsers();
+        var today = new Date();
+        date = formatDate(new Date(today));
+        $('#DatE').html(date);
+
+
+        $("#html-editor").dxHtmlEditor({
+            height: 370,
+            toolbar: {
+                items: [
+                    "undo", "redo", "separator",
+                    {
+                        formatName: "size",
+                        formatValues: ["8pt", "10pt", "12pt", "14pt", "18pt", "24pt", "36pt"]
+                    },
+                    {
+                        formatName: "font",
+                        formatValues: ["Arial", "Courier New", "Georgia", "Impact", "Lucida Console", "Tahoma", "Times New Roman", "Verdana"]
+                    },
+                    "separator", "bold", "italic", "strike", "underline", "separator",
+                    "alignLeft", "alignCenter", "alignRight", "alignJustify", "separator",
+                    {
+                        formatName: "header",
+                        formatValues: [false, 1, 2, 3, 4, 5]
+                    }, "separator",
+                    "orderedList", "bulletList", "separator",
+                    "color", "background", "separator",
+                    "clear", "codeBlock", "blockquote"
+                ]
+            },
+            mediaResizing: {
+                enabled: true
+            },
+            export: {
+                enabled: true,
+                printingEnabled: false
+            },
+
+        });
+
+           getPages = JSON.parse(localStorage.getItem('Pages'));
+        Pages = getPages.find(dx => dx.PageName == "Quotation");
+        if (Pages.Create == true) {
+            $("#createQuotation").show();
+        }
+        else {
+            $("#createQuotation").hide();
+        } 
+        $("#btn_assign").hide();
+        $("#assignItems").hide();
+     });
+
+
+    function getUsers() {
+        $.get('/User/GetUsers?companyId=' + CompanyID, function (data) {
+            users = data;
+
+            $('#salesRep').dxSelectBox({
+                dataSource: new DevExpress.data.ArrayStore({
+                    data: users,
+                    key: 'Id',
+                }),
+                displayExpr: 'Name',
+                valueExpr: 'Id',
+                elementAttr: {
+                    class: "dropDownCss"
+                },
+                searchEnabled: true,
+                showClearButton: true,
+                onValueChanged(data) {
+                    salesRepid = data.value
+                    console.log(salesRepid, 'salesRepID');
+                }
+            });
+        });
+
+    }
+
+    function formatDate(date) {
+        var day = date.getDate();
+        var month = date.getMonth() + 1;
+        var year = date.getFullYear();
+
+        var formatted = (day < 10 ? "0" : "") + day + "-" + (month < 10 ? "0" : "") + month + "-" + year;
+        return formatted;
+    }
+
+    function getQuotes() {
+
+                //****Get Current User with roles*****
+        $.get('@Url.Action("CurrentUserList", "Admin")', function (data) {
+            roles = data;
+            console.log(roles.result, "result roLes");
+
+            var dxdx = roles.result.filter(r => r.RoleName == 'SuperAdmin' || r.RoleName == 'Manager');
+            console.log(dxdx.length, "dxsdx");
+            if (dxdx.length > 0) {
+                $.get('/Quotation/GetAllQuotations', function (data) {
+                    quotdata = data;
+                    console.log(quotdata)
+                    Quotationgrid(quotdata);
+                });
+            }
+            else {
+                $.get('/Quotation/GetQuotations', function (data) {
+                    quotdata = data;
+                    console.log(quotdata)
+                    Quotationgrid(quotdata);
+                });
+            }
+        });
+    }
+
+    function getHQuotes() {
+
+        //****Get Current User with roles*****
+        $.get('@Url.Action("CurrentUserList", "Admin")', function (data) {
+            roles = data;
+            console.log(roles.result, "result roLes");
+
+        });
+    }
+
+
+    function Quotationgrid(quotdata) {
+          
+        $.get('/Company/GetCompanies', function (data) {
+            comp = data;
+
+            $.get('/Admin/GetAllClientsList', function (data) {
+                clients = data;
+
+                $.get('/User/GetUsersList', function (data) {
+                    users = data;
+                    console.log(users, "usrS");
+
+        const dataGrid = $("#gridContainer").dxDataGrid({
+                dataSource: quotdata,
+                keyExpr: "QuotationId",
+                showBorders: true,
+                columnAutoWidth: true,
+                allowColumnResizing: true,
+                columnHidingEnabled: true,
+                hoverStateEnabled: true,
+                selection: {
+                    mode: 'multiple',
+                },
+                paging: {
+                    pageSize: 12
+                },
+                pager: {
+                    visible: true,
+                    allowedPageSizes: [5, 10, 'all'],
+                    showPageSizeSelector: true,
+                    showInfo: true,
+                    showNavigationButtons: true,
+                },
+                editing: {
+                    mode: 'row',
+                    //allowUpdating: true,
+                     allowUpdating(e)
+                     {
+                         if (Pages.Update == true) {
+                             return e;
+                         }  
+                    }, 
+                    useIcons: true
+                },
+                columnsAutoWidth: true,
+                showBorders: true,
+                filterRow: {
+                    visible: true,
+                    applyFilter: "auto"
+                },
+                searchPanel: {
+                    visible: true,
+                    placeholder: "Search..."
+                },
+                export: {
+                    enabled: true,
+                },
+                onExporting: function (e) {
+                    console.log(e, "e");
+                    e.fileName = "Quotation List"
+                },
+                headerFilter: {
+                    visible: true
+                },
+                columns: [
+                    //{
+                    //    dataField: "QuotationId",
+                    //    caption: 'ID',
+                    //    allowEditing: false
+                    //},
+                    {
+                        dataField: 'CompanyId',
+                        caption: 'Company',
+                        lookup: {
+                            dataSource: comp,
+                            displayExpr: 'CompanyName',
+                            valueExpr: 'CompanyId',
+                        },
+                    },
+                    {
+                        dataField: 'ClientId',
+                        caption: 'Client',
+                        lookup: {
+                            dataSource: clients,
+                            displayExpr: 'ClientName',
+                            valueExpr: 'ClientId',
+                        },
+                    },
+                     
+                    {
+                        dataField: 'CreatedBy',
+                        caption: 'Created By',
+                        lookup: {
+                            dataSource: users,
+                            displayExpr: 'Name',
+                            valueExpr: 'Id',
+                        },
+                    },
+
+                    {
+                        dataField: 'EditedBy',
+                        caption: 'Updated By',
+                        lookup: {
+                            dataSource: users,
+                            displayExpr: 'Name',
+                            valueExpr: 'Id',
+                        },
+                    },
+                    {
+                        dataField: "CreatedAt",
+                        caption: 'Created Date',
+                        dataType: "datetime",
+                        format: "dd/MMM/yyyy",
+                        allowEditing: false
+                    },
+                    {
+                        dataField: "QuotationStatus",
+                        caption: "Status"
+                    },
+                    {
+                        dataField: "Admin"
+                    },
+                    {
+                        dataField: "Manager"
+                    },
+                    {
+                        dataField: "Text",
+                        caption: "Reason"
+                    },
+
+                    {
+                        type: "buttons",
+                        buttons: ["edit", 
+                            {
+                                hint: "Report",
+                                icon: "exportpdf",
+                                 visible: function (e) {
+                                     repoRt = getPages.find(dx => dx.PageName == "View Report"); 
+                                     if (repoRt && repoRt.Read == true) {
+                                         console.log(e, 'view report e');
+                                         return e;
+                                     }
+                                     else {
+                                         return e.column.visible = false;
+                                     }
+                                },
+                                onClick: function (e) {
+                                    $("#btn_email").hide();
+                                    $("#myModal").modal();
+                                    console.log(e);
+                                    var compID = e.row.data.CompanyId;
+                                    var clientID = e.row.data.ClientId;
+                                    var quoteId = e.row.data.QuotationId;
+
+                                    $.get('/Report/ViewReport?Id=' + compID + '&cId=' + clientID + '&quoteID=' + quoteId, function (data) {
+                                        $('#repotdata').html(data);
+                                        setTimeout(function () {
+                                            $("#load").hide();
+                                            $("#btn_email").show();
+                                        }, 1000);
+                                    });
+
+                                    cliEnTID = e.row.data.ClientId;
+                                    quoatationID = e.row.data.QuotationId;
+                                },
+                            },
+                            {
+                                hint: "View History",
+                                icon: "mdi mdi-history",
+                                visible: function (e) {
+                                    var hisTorY = getPages.find(dx => dx.PageName == "Quotation History"); 
+                                    if (hisTorY && hisTorY.Read == true) { 
+                                        return e;
+                                    }
+                                    else {
+                                        return e.column.visible = false;
+                                    }
+                                },
+                                onClick: function (e) {
+                               $("#historyModal").modal();
+                                 getHQuotes();
+                               var dxdx = roles.result.filter(r => r.RoleName == 'SuperAdmin' || r.RoleName == 'Manager');
+                                    console.log(dxdx.length, "dxsdx");
+                                if (dxdx.length > 0) {
+                                    $.get('/Quotation/GetAllHQuotations?iD=' + e.row.data.QuotationId, function (data) {
+                                        quotHdata = data;
+                                        console.log(quotHdata, "quoTHistorYALL")
+                                        QuotationHgrid(quotHdata);
+                                    });
+                                }
+                            else {
+                                $.get('/Quotation/GetQuotationss?id=' + e.row.data.QuotationId, function (data) {
+                                    quotHdata = data;
+                                    console.log(quotHdata, "quoTHistorYbyUser")
+                                    QuotationHgrid(quotHdata);
+                                });
+                            }
+
+
+                                }
+                            }],
+                    }],
+                masterDetail: {
+                    enabled: true,
+                    template: function (container, options) {
+                        $.get('/Quotation/GetItemLists', function (data) {
+                            quotesDetail = data;
+                            console.log(quotesDetail);
+                            $('<div>')
+                                $("<div>")
+                                    .dxDataGrid({
+                                        columnAutoWidth: true,
+                                        showBorders: true,
+                                        filterRow: {
+                                            visible: true,
+                                            applyFilter: "auto"
+                                        },
+                                        searchPanel: {
+                                            visible: true,
+                                            width: 240,
+                                            placeholder: "Search..."
+                                        },
+                                        headerFilter: {
+                                            visible: true
+                                        },
+                                        columns: [
+                                            {
+                                                dataField: "MasterDetailId",
+                                                caption: 'No',
+                                                allowEditing: false
+                                            },
+                                            {
+                                                dataField: 'MasterId',
+                                                caption: 'Description',
+                                                lookup: {
+                                                    dataSource: quotesDetail,
+                                                    displayExpr: 'Item',
+                                                    valueExpr: 'MasterId',
+                                                },
+                                            },
+
+                                            {
+                                                dataField: "Price",
+                                                allowEditing: false
+                                            },
+                                            {
+                                                dataField: "Quantity",
+                                                caption: 'Qty'
+                                            },
+                                            {
+                                                dataField: "Payable",
+                                                allowEditing: false,
+                                                //dataType: "number",
+                                                caption: 'Total Amount Payable',
+                                                type: "fixedPoint",
+                                                precision: 2,
+                                                calculateCellValue(rowData) {
+                                                    return rowData.Payable = rowData.Quantity * rowData.Price;
+                                                },
+                                            }],
+                                        summary: {
+                                            totalItems: [{
+                                                column: 'Payable',
+                                                summaryType: 'sum'
+                                            }],
+                                        },
+                                        dataSource: new DevExpress.data.DataSource({
+                                            store: new DevExpress.data.ArrayStore({
+                                                data: options.data.Master_Detail_Tables
+                                            }),
+                                        })
+                                    }).appendTo(container);
+                            });
+                    }
+                },
+                 
+                     //     onToolbarPreparing: function (e) {
+           //         var dataGrid = e.component; 
+           //         e.toolbarOptions.items.unshift({
+           //         location: "after",
+           //         widget: "dxButton", 
+           //         options: {
+           //             icon: "add",
+           //             type: 'default',
+           //             text: 'Create New Quotation',
+           //             onClick: function () {
+           //                 top.location.href = '/Quotation/CreateQuotation';
+           //             }
+           //         }
+           //      });
+           //                // }
+           //            // });
+           //         //});
+           //},
+
+            onSelectionChanged(selectedItems) {
+                const data = selectedItems.selectedRowsData;
+                if (data.length > 0) {
+                    $("#btn_assign").show();
+                    console.log(data, 'data');
+                    console.log(salesRepid, 'sID');
+                    quotationData = data
+                }
+                else {
+                    $("#btn_assign").hide();
+                }
+                    
+            },
+                onEditingStart: function (e) {
+                    console.log(e);
+                    var quoTatiOn = e.data.QuotationId;
+                    console.log(quoTatiOn, "iD");
+                    top.location.href = '/Quotation/UpdateQuotation?id=' + quoTatiOn;
+                },
+
+        }).dxDataGrid('instance');;
+
+            $('#select-all-mode').dxSelectBox({
+                dataSource: ['allPages', 'page'],
+                value: 'allPages',
+                onValueChanged(data) {
+                    dataGrid.option('selection.selectAllMode', data.value);
+                },
+            });
+                });
+            });
+        });
+    }
+
+
+    function QuotationHgrid(quotHdata) {
+        $.get('/Company/GetCompanies', function (data) {
+            comp1 = data;
+
+            $.get('/Admin/GetAllClients?cmpID=' + CompanyID, function (data) {
+                clients1 = data;
+
+                $.get('/User/GetUsers?companyId=' + CompanyID, function (data) {
+                    users1 = data;
+
+                    $("#gridHContainer").dxDataGrid({
+                        dataSource: quotHdata,
+                        //keyExpr: "QuotationHistoryId",
+                        showBorders: true,
+                        columnAutoWidth: true,
+                        allowColumnResizing: true,
+                        columnHidingEnabled: true,
+                        hoverStateEnabled: true,
+                        paging: {
+                            pageSize: 8
+                        },
+                        pager: {
+                            visible: true,
+                            allowedPageSizes: [5, 16,30, 'all'],
+                            showPageSizeSelector: true,
+                            showInfo: true,
+                            showNavigationButtons: true,
+                        },
+                        columnsAutoWidth: true,
+                        showBorders: true,
+                        filterRow: {
+                            visible: true,
+                            applyFilter: "auto"
+                        },
+                        searchPanel: {
+                            visible: true,
+                            placeholder: "Search..."
+                        },
+                        headerFilter: {
+                            visible: true
+                        },
+                        columns: [
+                            {
+                                dataField: "QuotationId",
+                                caption: 'ID',
+                                allowEditing: false
+                            },
+                            {
+                                dataField: 'CompanyId',
+                                caption: 'Company',
+                                lookup: {
+                                    dataSource: comp1,
+                                    displayExpr: 'CompanyName',
+                                    valueExpr: 'CompanyId',
+                                },
+                            },
+                            {
+                                dataField: 'ClientId',
+                                caption: 'Client',
+                                lookup: {
+                                    dataSource: clients1,
+                                    displayExpr: 'ClientName',
+                                    valueExpr: 'ClientId',
+                                },
+                            },
+
+                            {
+                                dataField: "CreatedAt",
+                                caption: 'Created Date',
+                                dataType: "datetime",
+                                format: "dd/MMM/yyyy",
+                                allowEditing: false
+                            },
+                            {
+                                dataField: 'CreatedBy',
+                                caption: 'Created By',
+                                allowEditing: false,
+                                lookup: {
+                                    dataSource: users1,
+                                    displayExpr: 'Name',
+                                    valueExpr: 'Id',
+                                },
+                            },
+                            //{
+                            //    dataField: "EditedAt",
+                            //    caption: 'Updated Date',
+                            //    dataType: "datetime",
+                            //    format: "dd/MMM/yyyy",
+                            //    allowEditing: false
+                            //},
+                            {
+                                dataField: 'UserId',
+                                caption: 'Updated By',
+                                allowEditing: false,
+                                lookup: {
+                                    dataSource: users1,
+                                    displayExpr: 'Name',
+                                    valueExpr: 'Id',
+                                },
+                            },
+                            {
+                                dataField: "QuotationStatus",
+                                caption: "Status"
+                            },
+                            {
+                                dataField: "Manager"
+                            },
+                            {
+                                dataField: "Admin"
+                            },
+                            {
+                                dataField: "AssignedBy",
+                                caption: "Assigned By"
+                            },
+                            {
+                                dataField: "Text",
+                                caption: "Reason"
+                            },
+                            {
+                                type: "buttons",
+                                buttons: ["edit",
+                                    {
+                                        hint: "View",
+                                        icon: "mdi mdi-eye",
+                                        onClick: function (e) {
+                                            var quoTatiOn = e.row.data.QuotationId;
+                                            console.log(quoTatiOn, "iD");
+                                            top.location.href = '/Quotation/ViewQuotation?id=' + quoTatiOn;
+                                        },
+                                    }],
+                            }],
+                        masterDetail: {
+                            enabled: true,
+                            template: function (container, options) {
+                                $.get('/Quotation/GetItemLists', function (data) {
+                                    quotesDetail = data;
+                                    console.log(quotesDetail);
+                                    $('<div>')
+                                    $("<div>")
+                                        .dxDataGrid({
+                                            columnAutoWidth: true,
+                                            showBorders: true,
+                                            filterRow: {
+                                                visible: true,
+                                                applyFilter: "auto"
+                                            },
+                                            searchPanel: {
+                                                visible: true,
+                                                width: 240,
+                                                placeholder: "Search..."
+                                            },
+                                            headerFilter: {
+                                                visible: true
+                                            },
+                                            columns: [
+                                                {
+                                                    dataField: 'MasterId',
+                                                    caption: 'Description',
+                                                    lookup: {
+                                                        dataSource: quotesDetail,
+                                                        displayExpr: 'Item',
+                                                        valueExpr: 'MasterId',
+                                                    },
+                                                },
+
+                                                {
+                                                    dataField: "Price",
+                                                    allowEditing: false
+                                                },
+                                                {
+                                                    dataField: "Quantity",
+                                                    caption: 'Qty'
+                                                },
+                                                {
+                                                    dataField: "Payable",
+                                                    allowEditing: false,
+                                                    //dataType: "number",
+                                                    caption: 'Total Amount Payable',
+                                                    type: "fixedPoint",
+                                                    precision: 2,
+                                                    calculateCellValue(rowData) {
+                                                        return rowData.Payable = rowData.Quantity * rowData.Price;
+                                                    },
+                                                },
+                                                {
+                                                    dataField: "CreatedAt",
+                                                    caption: 'Created Date',
+                                                    dataType: "datetime",
+                                                    format: "dd/MMM/yyyy",
+                                                    allowEditing: false
+                                                },
+                                                {
+                                                    dataField: "EditedAt",
+                                                    caption: 'Edit Date',
+                                                    dataType: "datetime",
+                                                    format: "dd/MMM/yyyy",
+                                                    allowEditing: false
+                                                },
+                                                {
+                                                    dataField: "EditedBy",
+                                                    caption: 'Updated By',
+                                                    allowEditing: false
+                                                }],
+                                            summary: {
+                                                totalItems: [{
+                                                    column: 'Payable',
+                                                    summaryType: 'sum'
+                                                }],
+                                            },
+                                            dataSource: new DevExpress.data.DataSource({
+                                                store: new DevExpress.data.ArrayStore({
+                                                    data: options.data.QuotationHistoryDetails
+                                                }),
+                                            })
+                                        }).appendTo(container);
+                                });
+                            }
+                        },
+                    });
+
+                });
+            });
+        });
+    }
+
+    function valueChanged() {
+        if ($('.coupon_question').is(":checked"))
+            $("#assignItems").show();
+        else
+            $("#assignItems").hide();
+    }
+
+    function assignQuotations() {
+        console.log(quotationData, 'quoTes');
+        console.log(salesRepid, 'ID');
+        $.post('/Quotation/AssignQuotations', { quotationS: quotationData, salesRep: salesRepid }, function (data) {
+        });
+    }
+
+    function sendEmail() {
+        console.log(cliEnTID, "CCCiD");
+        console.log(quoatationID, "QQQiD");
+        $.get('/Admin/GetClient?id=' + cliEnTID, function (data) {
+            var custoMers = data;
+            var model = {
+                Email: custoMers.Email,
+                ClientName: custoMers.ClientName,
+                QuotationID: quoatationID
+            }
+            console.log(model, "DaTa");
+            //$.post('/Admin/SubmitReport?email=' + custoMers.Email + '&QuotationID=' + quoatationID, function (data) {
+            $.post('/Admin/SubmitReport', { model, model }, function (data) {
+                console.log(data, "daTa");
+            })
+        });
+    }
+</script>
+
+<style>
+
+    table.table-bordered > tbody > tr > td {
+        border: 1px solid black !important;
+    }
+
+    .form-control {
+        border: none !important;
+    }
+
+        .form-control[readonly] {
+            background: none;
+        }
+
+    .blockquote {
+        border: 1px solid #9ea3af !important;
+    }
+</style>
+
+<div class="card">
+    <div class="card-header">
+        <h3 style="display: inline-block;">Quotations</h3> 
+        <button type="button" onclick="location.href='/Quotation/CreateQuotation'" id="createQuotation" class="btn btn-info btn-fw float-right">Add New Quotation</button>
+    </div>
+    <div class="card-body">
+         
+
+        <div class="form-check">
+            <input type="checkbox" class="form-check-input coupon_question" onchange="valueChanged()" id="exampleCheck1">
+            <label class="form-check-label" for="exampleCheck1">Assign Quotation</label>
+
+        </div>
+        @*<input class="coupon_question" type="checkbox" name="coupon_question" value="1"  />*@
+        <div class="row" id="assignItems">
+            <div class="col-md-3">
+                <div class="option">
+                    <span>Sales Rep.</span>
+                    <div id="salesRep"></div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="option">
+                    <span>Selection Mode</span>
+                    <div id="select-all-mode"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div id="gridContainer"></div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <button type="button" id="btn_assign" class="btn btn-info" onclick="assignQuotations()">Assign</button>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+<!-- History Modal -->
+<div class="modal fade bd-example-modal-lg" id="historyModal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Quotation History</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body"> 
+                <div class="card"> 
+                    <div class="card-body">
+                        <div class="row">
+                            <div id="gridHContainer"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-dark btn-fw" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+    
+    <!-- History Modal -->
+
+
+<div class="modal fade bd-example-modal-lg" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Report</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="load">
+                    <div class="loader"></div>
+                    @*<div clas="loader-txt text-center">
+                            <p>Loading ........</p>
+                        </div>*@
+                </div>
+                <div class="row" id="btn_email">
+                    <div class="col-md-12">
+                        <button type="button" class="btn btn-gradient-info btn-icon-text float-right" onclick="sendEmail()">
+                            Send <i class="mdi mdi-email btn-icon-append"></i>
+                        </button>
+                    </div>
+                </div>
+                <hr />
+                <div id="repotdata"> </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-dark btn-fw" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+
+    </div>
+</div>

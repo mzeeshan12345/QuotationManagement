@@ -1,0 +1,180 @@
+﻿
+@{
+    ViewData["Title"] = "Terms & Conditions";
+}
+
+<script>
+    var termsdata;
+
+    $(function () {
+        getTermsConditionsList();
+
+
+        $("#html-editor").dxHtmlEditor({
+            height: 500, 
+            toolbar: {
+                items: [
+                    "undo", "redo", "separator",
+                    {
+                        formatName: "size",
+                        formatValues: ["8pt", "10pt", "12pt", "14pt", "18pt", "24pt", "36pt"]
+                    },
+                    {
+                        formatName: "font",
+                        formatValues: ["Arial", "Courier New", "Georgia", "Impact", "Lucida Console", "Tahoma", "Times New Roman", "Verdana"]
+                    },
+                    "separator", "bold", "italic", "strike", "underline", "separator",
+                    "alignLeft", "alignCenter", "alignRight", "alignJustify", "separator",
+                    {
+                        formatName: "header",
+                        formatValues: [false, 1, 2, 3, 4, 5]
+                    }, "separator",
+                    "orderedList", "bulletList", "separator",
+                    "color", "background", "separator",
+                    "clear", "codeBlock", "blockquote"
+                ]
+            },
+            mediaResizing: {
+                enabled: true
+            },
+            export: {
+                enabled: true,
+                printingEnabled: false
+            },
+
+        }); 
+
+    });
+
+
+    function onSubmit() { 
+        var description = $(".dx-htmleditor-content").html();
+        $.post('/Admin/AddTc?', { description: description },  function (data) {
+            console.log(data); 
+         });
+    }
+
+    function getTermsConditionsList() {
+        $.get('/Admin/GetAllTermConditions', function (data) {
+            termsdata = data;
+            console.log(termsdata);
+            $(".dx-htmleditor-content").html(termsdata.Remarks);
+            //TermsConditiongrid(termsdata);
+        });
+    }
+
+
+    function TermsConditiongrid(termsdata) {
+        $("#gridContainer").dxDataGrid({
+            dataSource: termsdata,
+            keyExpr: "TCId",
+            showBorders: true,
+            columnAutoWidth: true,
+            wordWrapEnabled: true,
+            allowColumnResizing: true,
+            columnHidingEnabled: true,
+            hoverStateEnabled: true,
+            paging: {
+                pageSize: 3
+            },
+            editing: {
+                mode: 'cell',
+                allowAdding: true,
+                allowUpdating: true,
+                useIcons: true
+            },
+            columnsAutoWidth: true,
+            showBorders: true,
+            filterRow: {
+                visible: true,
+                applyFilter: "auto"
+            },
+            searchPanel: {
+                visible: true,
+                placeholder: "Search..."
+            },
+            export: {
+                enabled: true,
+            },
+            onExporting: function (e) {
+                console.log(e, "e");
+                e.fileName = "Terms&Conditions"
+            },
+            headerFilter: {
+                visible: true
+            },
+            columns: [
+                {
+                    dataField: "TCId",
+                    allowEditing: false
+                },
+                {
+                    dataField: "Remarks"
+                },
+                {
+                    dataField: "Delivery"
+                },
+                {
+                    dataField: "CMEApproval"
+                },
+                {
+                    dataField: "Payment"
+                },
+                {
+                    dataField: "Validity"
+                }],
+            onRowInserted: function (e) {
+                var model = e.data;
+                $.post('/Admin/AddTermsConditions', { model, model }, function (data) {
+                    console.log(data);
+                    if (data) {
+                        toastr.success('Add Successfully');
+                        getTermsConditionsList();
+                    }
+                });
+            },
+            onRowUpdated: function (e) {
+                var model = e.data;
+                $.post('/Admin/UpdateTermsConditions', { model, model }, function (data) {
+                    console.log(data);
+                    if (data) {
+                        toastr.success('Update Successfully');
+                        getTermsConditionsList();
+
+                    }
+                });
+            },
+        });
+
+    }
+</script>
+ 
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title"> Terms and Conditions</h4>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="html-editor" id="html-editor"></div>
+                    </div>
+                </div>
+
+                <hr class="sidebar-divider d-none d-md-block">
+                <div class="row">
+                    <div class="col-md-4"></div>
+                    <div class="col-md-4">
+                        <button type="button" class="btn btn-info" onclick="onSubmit()">Save</button>
+                    </div>
+                    <div class="col-md-4"></div>
+                </div>
+                @*<div id="gridContainer"></div>*@
+
+                 
+            </div>
+        </div>
+    </div>
+</div>
+

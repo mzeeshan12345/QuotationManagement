@@ -1,0 +1,1336 @@
+﻿@{
+    var custoMers = (IEnumerable<SelectListItem>)ViewData["Customers"];
+}
+
+<script>
+    var quotdata = [];
+    var quotes;
+    var iTemSs;
+    var iteMs;
+    var fcx;
+    var comp;
+    var compBank;
+    var tc;
+    var url = "";
+    var cv = "";
+    var date;
+    var approvaL = ['Pending', 'Approved', 'Decline'];
+    var count1 = 0;
+    var subCliEnTs;
+    var clients;
+    var modelManager;
+
+    var percentageValue;
+    var flatValue;
+
+    var isPerItem;
+    var isFlat;
+
+    var toTal;
+
+    var modelAdmin;
+    var quotationStatus = ['Proposal', 'Quotation'];
+    //var quotationStatus = ['Proposal', 'Quotation', 'Waiting PO', 'PO Received', 'Invoiced', 'Canceled'];
+
+
+    $(function () {
+        CompanyID = localStorage.getItem('CompanyId');
+        Quotationgrid(quotdata);
+        GetitemSS();
+        getCompAny();
+        GetStatusApproval();
+        getTermsandCondition();
+        var today = new Date();
+        date = formatDate(new Date(today));
+        $('#DatE').html(date);
+
+
+        $("#suBClient").addClass("disable-div");
+
+        $(".SearchDropdown").select2({
+
+            dropdownParent: $("#cuStoMerForm")
+        });
+
+
+        $("#html-editor").dxHtmlEditor({
+            height: 275,
+            toolbar: {
+                items: [
+                    "undo", "redo", "separator",
+                    {
+                        name: "size",
+                        acceptedValues: ["8pt", "10pt", "12pt", "14pt", "18pt", "24pt", "36pt"]
+                    },
+                    {
+                        name: "font",
+                        acceptedValues: ["Arial", "Courier New", "Georgia", "Impact", "Lucida Console", "Tahoma", "Times New Roman", "Verdana"]
+                    },
+                    "separator", "bold", "italic", "strike", "underline", "separator",
+                    "alignLeft", "alignCenter", "alignRight", "alignJustify", "separator",
+                    {
+                        name: "header",
+                        acceptedValues: [false, 1, 2, 3, 4, 5]
+                    }, "separator",
+                    "orderedList", "bulletList", "separator",
+                    "color", "background", "separator",
+                    "clear", "codeBlock", "blockquote"
+                ]
+            },
+            mediaResizing: {
+                enabled: true
+            },
+            export: {
+                enabled: true,
+                printingEnabled: false
+            },
+
+        });
+
+        days = ['5','10', '15', '20']
+
+        $('#workingDays').dxSelectBox({
+            items: days,
+            searchEnabled: true,
+            showClearButton: true,
+            onValueChanged: function (e) { 
+                var x = event.clientX;
+                var y = event.clientY;  
+
+                console.log(x, 'X');
+                console.log(y, 'Y');
+
+                var length = e.previousValue != null ? e.previousValue.length : 1;
+                $("#html-editor").dxHtmlEditor("instance").delete(x, length);
+                 var newValue = e.value;
+                $("#html-editor").dxHtmlEditor("instance").insertText(x, newValue, {
+                    bold: true,
+                    color: "black"
+                });
+
+             },
+        });
+
+
+        $('#QStatus').dxSelectBox({
+            items: quotationStatus,
+            name: "QuotationStatus",
+            searchEnabled: true,
+            showClearButton: true,
+            elementAttr: {
+                class: "form-control"
+            },
+        });
+
+
+
+        $('#checkPerItem').dxCheckBox({
+            elementAttr: {
+                name: "IsPerItem",
+                class: "mt_25",
+            },
+             onValueChanged: function (e) {
+
+                 isPerItem = e.value;
+                 if (isPerItem == true) {
+
+                     $("#FlatDiscount").val(0);
+                     $("#FlatDiscount").attr('readonly', true);
+
+                    $('#discounTPercentage').dxCheckBox({
+                        value: null,
+                        disabled: false,
+                    }).dxCheckBox('instance');
+
+                     $('#discounTFlat').dxCheckBox({
+                        value: null,
+                        disabled: false,
+                    }).dxCheckBox('instance');
+
+                     $('#checkFlat').dxCheckBox({
+                         value: null,
+                         disabled: true,
+                     }).dxCheckBox('instance');
+                }
+                 else {
+
+                     $('#discounTPercentage').dxCheckBox({
+                         value: null,
+                         disabled: true,
+                     }).dxCheckBox('instance');
+
+                     $('#discounTFlat').dxCheckBox({
+                         value: null,
+                         disabled: true,
+                     }).dxCheckBox('instance');
+
+                     $('#checkFlat').dxCheckBox({
+                         value: null,
+                         disabled: false,
+                     }).dxCheckBox('instance');
+
+                     $("#FlatDiscount").val(0);
+                     $("#FlatDiscount").attr('readonly', false);
+                }
+            },
+        });
+
+
+        $('#checkFlat').dxCheckBox({
+            elementAttr: {
+                name: "IsFlat",
+                class: "mt_25",
+            },
+            onValueChanged: function (e) {
+                isFlat = e.value;
+                if (isFlat == true) {
+                    $("#FlatDiscount").attr('readonly', false);
+                    $("#FlatDiscount").addClass('input-disabled_css');
+
+                    $('#checkPerItem').dxCheckBox({
+                        value: null,
+                        disabled: true,
+                    }).dxCheckBox('instance');
+
+                    $('#discounTPercentage').dxCheckBox({
+                        value: null,
+                        disabled: false,
+                    }).dxCheckBox('instance');
+
+                    $('#discounTFlat').dxCheckBox({
+                        value: null,
+                        disabled: false,
+                    }).dxCheckBox('instance');
+
+                }
+                else if (isPerItem != true) {
+
+                    $('#discounTPercentage').dxCheckBox({
+                        value: null,
+                        disabled: true,
+                    }).dxCheckBox('instance');
+
+                    $('#discounTFlat').dxCheckBox({
+                        value: null,
+                        disabled: true,
+                    }).dxCheckBox('instance');
+
+                    $('#checkPerItem').dxCheckBox({
+                        value: null,
+                        disabled: false,
+                    }).dxCheckBox('instance');
+
+                    $("#FlatDiscount").val(0);
+                    $("#FlatDiscount").attr('readonly', true);
+                }
+            },
+        });
+
+
+
+
+        $('#discounTPercentage').dxCheckBox({
+            elementAttr: {
+                name: "Percentage",
+                class: "mt_25",
+            },
+            disabled: true,
+            onValueChanged: function (e) {
+                percentageValue = e.value;
+            },
+        });
+
+        $('#discounTFlat').dxCheckBox({
+            elementAttr: {
+                name: "Flat",
+                class: "mt_25",
+            },
+            disabled: true,
+            onValueChanged: function (e) {
+                flatValue = e.value;
+                if (flatValue == true) {
+                    $('#discounTPercentage').dxCheckBox({
+                        value: null,
+                        disabled: true,
+                    }).dxCheckBox('instance');
+
+                }
+                else {
+                    $('#discounTPercentage').dxCheckBox({
+                        value: null,
+                        disabled: false,
+                    }).dxCheckBox('instance');
+                }
+            },
+        });
+
+    });
+
+
+    function GetitemSS() {
+
+        //$.get('/Quotation/GetItems', function (data) {
+        $.get('/Quotation/GetAllSubItems', function (data) {
+            fcx = data;
+            //fcx = iTemSs.filter(d => d.MainItemId == rowData.MainItemId);
+
+        });
+    }
+    function GetStatusApproval() {
+
+                        //****Get Current User with roles*****
+                 $.get('@Url.Action("CurrentUserList", "Admin")', function (data) {
+                     roles1 = data;
+
+                      // **** Get All Assigned Pages By Role ***
+                     $.post('@Url.Action("GetMethodPermission", "Admin")', { role: roles.result }, function (data) {
+                         menu1 = data;
+
+                         if (menu1.length > 0) {
+                             for (var i = 0; i > menu1.length; i++) {
+                                 if (menu1[i].PageName == "Approval Method" && menu1[i].Read == true) {
+                                     count1++
+                                     $('#Status').dxSelectBox({
+                                         elementAttr: {
+                                             class: "form-control"
+                                         },
+                                         items: approvaL,
+                                         name: "Status",
+                                         searchEnabled: true,
+                                         showClearButton: true
+                                     });
+
+                                 }
+                                 else {
+                                     $('#Status').dxSelectBox({
+
+                                         elementAttr: {
+                                             class: "form-control"
+                                         },
+
+                                         items: approvaL,
+                                         name: "Status",
+                                         readOnly: true,
+                                         value: "Pending",
+                                         searchEnabled: true,
+                                         showClearButton: true
+                                     });
+                                 }
+                             }
+                         }
+                         else {
+                             $('#Status').dxSelectBox({
+                                 items: approvaL,
+                                 name: "Status",
+                                 readOnly: true,
+                                 value: "Pending",
+                                 searchEnabled: true,
+                                 showClearButton: true
+                             });
+                         }
+                     });
+                });
+    }
+
+        function GetCustomers() {
+          $.get('@Url.Action("GetActiveCompanies", "Company")', function (data) {
+            companiEs = data;
+
+             $('#companyDropdown').dxSelectBox({
+                 dataSource: new DevExpress.data.ArrayStore({
+                     data: companiEs,
+                     key: 'CompanyId',
+                 }), inputAttr: {
+                     name: "CompanyId"
+                 },
+                 displayExpr: 'CompanyName',
+                 valueExpr: 'CompanyId'
+             });
+        });
+    }
+
+    function formatDate(date) {
+        var day = date.getDate();
+        var month = date.getMonth() + 1;
+        var year = date.getFullYear();
+
+        var formatted = (day < 10 ? "0" : "") + day + "-" + (month < 10 ? "0" : "") + month + "-" + year;
+        return formatted;
+    }
+
+
+    function getTermsandCondition() {
+        $.get('/Admin/GetAllTermConditions', function (data) {
+            termsdata = data;
+            //$(".dx-htmleditor-content").html(termsdata.Remarks);
+         });
+    }
+
+
+    function getCompAny() {
+        var data = JSON.parse(localStorage.getItem('User'));
+        var cmpId = data.CompanyId;
+        $.get('/Company/GetCompany?cmpID=' + cmpId, function (data) {
+            console.log(data, "Company data")
+            comp = data;
+
+
+            $.get('/Company/GetCompanyBank?iD=' + cmpId, function (data) {
+                console.log(data, "Company data")
+                compBank = data;
+
+            $('#CompanyId').html(comp.CompanyId);
+            $('#CompanyName').html(comp.CompanyName);
+            $('#BankCompanyName').html(comp.CompanyName);
+            $(".dx-htmleditor-content").html(comp.TermsCondition);
+
+            $('#TRN').html(comp.TRN);
+            $('#Email').html('Email: ' + comp.Email);
+            $('#Address').html(comp.Address);
+            $('#Phone').html('Tel: ' + comp.Phone);
+            $('#Fax').html('Fax: ' + comp.Fax);
+            $('#Website').html('Website: ' + comp.Website);
+            $('#Footer').html(comp.Footer);
+
+
+
+                $('#BankName').html(compBank.BankName);
+                $('#AccountNumber').html(compBank.AccountNumber);
+                $('#IBAN').html(compBank.IBAN);
+                $('#SwiftCode').html(compBank.SwiftCode);
+        });
+       });
+    }
+    function getQuotes() {
+        $.get('/Quotation/GetQuotations', function (data) {
+            quotdata = data;
+
+        });
+    }
+
+
+    function Quotationgrid(quotdata) {
+        //$.get('/Quotation/GetAllItems', function (data) {
+        $.get('/Quotation/GetItemsList', function (data) {
+            iteMs = data;
+
+            $.get('/Quotation/GetItemLists', function (data) {
+            quotes = data;
+
+            $("#gridContainer").dxDataGrid({
+                dataSource: quotdata,
+                keyExpr: "MasterDetailId",
+                showBorders: true,
+                columnAutoWidth: true,
+                allowColumnResizing: true,
+                columnHidingEnabled: true,
+                hoverStateEnabled: true,
+                editing: {
+                    mode: 'row',
+                    allowUpdating: true,
+                    allowAdding: true,
+                    useIcons: true
+                },
+                columnsAutoWidth: true,
+                showBorders: true,
+                searchPanel: {
+                    visible: true,
+                    placeholder: "Search..."
+                },
+                headerFilter: {
+                    visible: true
+                },
+                onEditorPreparing(e) {
+                     if (e.parentType == 'dataRow' && e.dataField == 'MasterId') {
+                        e.editorOptions.disabled = (typeof e.row.data.MainItemId !== 'number');
+                    }
+                    if (isPerItem != true) {
+                        $("#gridContainer").dxDataGrid("columnOption", "Discount", "visible", false);
+                    }
+                    else if (isPerItem == true) {
+                        $("#gridContainer").dxDataGrid("columnOption", "Discount", "visible", true);
+                    }
+                },
+                onCellPrepared: function (e) {
+                    toTal = e.component.getTotalSummaryValue("toTalLast");
+                    $('#GrandTotal').val(toTal);
+                    console.log(toTal, 'val Total');
+                },
+
+                columns: [
+                    //{
+                    //    dataField: "MasterDetailId",
+                    //    caption: 'No',
+                    //    allowEditing: false
+                    //},
+                    {
+                        dataField: 'MainItemId',
+                        caption: 'Item',
+                         //setCellValue: function (rowData, value) {
+                        setCellValue(rowData, value) {
+                            rowData.MainItemId = value;
+                             rowData.MasterId = null;
+                         },
+                        lookup: {
+                            dataSource: iteMs,
+                            valueExpr: 'MainItemId',
+                            displayExpr: 'Name',
+                        },
+                    },
+
+                    {
+                        dataField: 'MasterId',
+                        caption: 'Description',
+                        lookup: {
+                            dataSource(options) {
+                                 console.log(fcx, 'fcx');
+                                return {
+                                    store: fcx,
+                                    filter: options.data ? ['MainItemId', '=', options.data.MainItemId] : null,
+                                };
+                            },
+                            valueExpr: 'MasterId',
+                            displayExpr: 'Item',
+                        },
+                          setCellValue: function (rowData, value) {
+                              rowData.MasterId = value;
+                              var v = quotes.find(d => d.MasterId == value);
+                                rowData.Price = v.Price;
+                        },
+                    },
+                    {
+                        dataField: "Price",
+                        allowEditing: false
+                    },
+                    {
+                        dataField: "Discount",
+                        caption: 'Item Discount',
+                         value: 0,
+                    },
+                    {
+                        dataField: "Quantity",
+                        caption: 'Qty',
+                        validationRules: [{ type: 'required' }],
+                    },
+
+                    {
+                        dataField: "Payable",
+                         allowEditing: false,
+                         dataType: "number",
+                        caption: 'Total Amount Payable',
+                        type: "fixedPoint",
+                        precision: 2,
+                        calculateCellValue(rowData) {
+                            //$('#GrandTotal').val(options.totalValue);
+                            if (isPerItem == true) {
+                                if (flatValue == true) {
+                                    return rowData.Payable = (rowData.Price - rowData.Discount) * rowData.Quantity;
+                                }
+                                else if (percentageValue == true) {
+                                    var percentageDiscount = (rowData.Price * rowData.Discount / 100);
+                                    return rowData.Payable = (rowData.Price - percentageDiscount) * rowData.Quantity;
+                                }
+                                else {
+                                    return rowData.Payable = rowData.Price * rowData.Quantity;
+                                }
+                            }
+                            else {
+                                    return rowData.Payable = rowData.Price * rowData.Quantity;
+                            }
+
+                            //return rowData.Payable = rowData.Quantity * rowData.Price - rowData.Discount;
+                        },
+                    }],
+                summary: {
+                    recalculateWhileEditing: true,
+                    totalItems: [{
+                        name: 'toTalLast',
+                        column: 'Payable',
+                        summaryType: 'sum'
+                    }],
+
+                },
+            });
+
+            });
+        });
+    }
+
+
+    function getReference(e) {
+        input = $(e).val();
+        console.log(input, 'inPuT');
+        $.get('/Admin/GetClient?id=' + input, function (data) {
+            if (data == null)
+            {
+                $("#suBClient").addClass("disable-div");
+            }
+            var reference = data.Reference;
+
+            $('#ReferenceNo').html(reference);
+        });
+
+        $.get('/Admin/GetSubClientByClient?id=' + input, function (data) {
+            var result = [];
+            for (i in data) {
+                x = data[i];
+                result.push({ "id": data[i].SubClientId, "text": data[i].ClientName });
+            }
+            $('#SubcustomEr').empty();
+
+            $('#SubcustomEr').select2({
+                data: result,
+                dropdownParent: $("#cuStoMerForm")
+            });
+
+            $("#suBClient").removeClass("disable-div");
+        });
+ }
+          //$('#suBcustoMers').dxSelectBox({
+
+          //    dataSource: new DevExpress.data.ArrayStore({
+          //        data: subCliEnTs,
+          //        key: 'SubClientId',
+          //    }),
+          //    inputAttr: {
+          //        name: "SubClientId",
+          //        id: "sCustoMers",
+          //        class: ""
+          //    },
+          //    elementAttr: {
+          //        id: "sCustoMers",
+          //        class: "form-control"
+          //    },
+          //    displayExpr: 'ClientName',
+          //    valueExpr: 'SubClientId',
+          //    searchEnabled: true,
+          //    showClearButton: true
+          //}).dxValidator({
+          //    validationRules: [{ type: 'required' }]
+          //});
+
+    function checkValidations() {
+
+        if (!$('#customEr').val()) {
+            toastr.error('Client is required');
+        }
+    }
+    function onSave() {
+        var d = document.getElementById('cuStoMerForm');
+        if (d.checkValidity()) {
+
+            var model = $('#cuStoMerForm').serializeArray();
+            var description = $(".dx-htmleditor-content").html();
+            var refr = $("#ReferenceNo").html();
+
+            //var model = {
+            //    ClientId: model[0].value,
+            //    Discount: model[1].value,
+            //    Description: model[2].value,
+            //    TermsConditions: description,
+            //    ClientReference: refr
+            //}
+
+            var model = {
+                ClientId: model[0].value,
+                QuotationStatus: model[2].value,
+                Description: model[3].value,
+                IsFlat: model[4].value,
+                IsPerItem: model[5].value,
+                Flat: model[6].value,
+                Percentage: model[7].value,
+                Discount: model[8].value,
+                Total: model[9].value,
+                TermsConditions: description,
+                ClientReference: refr,
+                Admin: '',
+                Manager: ''
+            }
+
+            console.log(model, "model");
+            if (quotdata.length > 0) {
+                //$.post('/Quotation/AddQuotation?clienT=' + model[0].value, { description:description, quotdata: quotdata  }, function (data) {
+                $.post('/Quotation/AddQuotation', { model: model, quotdata: quotdata }, function (data) {
+
+                    if (data > 0) {
+                        toastr.success('Successfully saved as draft');
+                        setTimeout(function () {
+                            window.location.reload();
+                        }, 3000);
+                    }
+                    else {
+                        setTimeout(function () {
+                            toastr.error('Error!');
+                        }, 2000);
+
+                    };
+                });
+
+            }
+            else {
+                toastr.error('Quotation item required !');
+            }
+        }
+        checkValidations();
+    }
+
+
+    function onSubmit() {
+        var d = document.getElementById('cuStoMerForm');
+        if (d.checkValidity()) {
+
+            var model = $('#cuStoMerForm').serializeArray();
+            var description = $(".dx-htmleditor-content").html();
+            var refr = $("#ReferenceNo").html();
+            console.log(model, 'ModeL');
+            var model = {
+                ClientId: model[0].value,
+                QuotationStatus: model[2].value,
+                Description: model[3].value,
+                IsFlat: model[4].value,
+                IsPerItem: model[5].value,
+                Flat: model[6].value,
+                Percentage: model[7].value,
+                Discount: model[8].value,
+                Total: model[9].value,
+                TermsConditions: description,
+                ClientReference: refr,
+                Admin: '',
+                Manager: ''
+            }
+            console.log(quotdata, 'ModeL');
+
+            $.get('/Admin/GetFlowStatusByCurrentUser', function (data) {
+                var permission = data;
+                console.log(permission, "permission");
+
+                if (permission.length > 0) {
+
+                    var permisionCheck = permission.find(d => d.FlowStatus == model.QuotationStatus);
+
+                    console.log(permisionCheck, "permision Check");
+
+                    if (permisionCheck && permisionCheck.ManagerApproval == true) {
+                        model.Manager = "Pending";
+                    } else {
+                        model.Manager = "N/A";
+                    }
+
+                    if (permisionCheck && permisionCheck.AdminApproval == true) {
+                        model.Admin = "Pending";
+                    }
+                    else {
+                        model.Admin = "N/A";
+                    }
+                }
+
+
+             if (quotdata.length > 0) {
+            console.log(model, "model 01");
+                 $.post('/Quotation/SubmitQuotation', { model: model, quotdata: quotdata }, function (data) {
+
+                    if (data > 0) {
+                        toastr.success('Success');
+                        setTimeout(function () {
+                            window.location.reload();
+                        }, 3000);
+                    }
+                    else {
+                        setTimeout(function () {
+                            toastr.error('Error!');
+                        }, 2000);
+
+                    };
+                });
+
+            }
+            else {
+                toastr.error('Quotation item required !');
+                }
+            });
+
+        }
+        checkValidations();
+    }
+
+
+</script>
+
+<style>
+
+    .disable-div {
+        pointer-events: none;
+    }
+
+    .dx-checkbox.dx-state-hover .dx-checkbox-icon {
+        border: 1px solid #0089ff !important;
+    }
+
+    .dx-checkbox-icon {
+        border: 1px solid #000;
+    }
+
+    .mt_25 {
+        margin-top: 12px !important;
+        margin-left: 10px;
+    }
+
+    .input-disabled_css {
+        background-color: #EBEBE4;
+        border: 1px solid #ABADB3;
+        padding: 2px 1px;
+    }
+
+    table.table-bordered > tbody > tr > td {
+        border: 1px solid black !important;
+    }
+
+    /*.form-control[readonly] {
+            background: none;
+        }*/
+
+    .form-control {
+        padding: 0 !important;
+    }
+
+    .blockquote {
+        border: 1px solid #9ea3af !important;
+    }
+
+    select.form-control {
+        outline: 1px solid black;
+    }
+
+        select.form-control:focus {
+            outline: 1px solid #808080;
+        }
+
+    .select2-container .select2-selection--single {
+        height: 47px !important;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 40px !important;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 40px !important;
+    }
+
+    .span_new {
+        display: inline-block;
+        float: right;
+        margin-top: 5px;
+    }
+</style>
+
+<div class="card">
+    <div class="card-header">
+        <h1 class="">Quotation Form</h1>
+    </div>
+    <div class="card-body">
+        <!--<div class="row">
+            <!--<div class="col-lg-8">
+
+        <div class="row">
+            <div class="col-md-4">
+                <p class="mb-0 font-weight-bold" id="CompanyName"></p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+             <address id="Address">  </address>
+        </div>
+                </div>
+
+
+                <div class="row">
+                    <div class="col-md-3">
+                        <p id="Phone"></p>
+                    </div>
+                    <div class="col-md-3">
+                        <p id="Fax"></p>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <p id="Website"></p>
+                    </div>
+                    <div class="col-md-6">
+                        <p id="Email"></p>
+                    </div>
+                </div>
+
+
+            </div>
+
+
+        </div> -->
+
+
+        <form id="cuStoMerForm" class="forms-sample" novalidate="">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="form-row">
+                        <div class="form-group col-md-3">
+                            <label for="Client" class="col-form-label" style="display:inline-block">Client <em class="text-danger">*</em></label>
+                            <span class="span_new"><a href="" class="nav-link" onclick="openModal()" data-toggle="modal" data-target=".bd-example-modal-lg">Add New</a></span>
+                            @Html.DropDownList("Email", custoMers, "Select Customer", new { @class = "form-control SearchDropdown", @id = "customEr", @name = "", @onchange = "getReference(this)", @required = "required" })
+                        </div>
+
+                        <div class="form-group col-md-3" id="suBClient">
+                            <label for="Client" class="col-form-label" style="display:inline-block">Subclient <em class="text-danger">*</em></label>
+                            <span class="span_new"><a href="" class="nav-link" onclick="openModal2()" data-toggle="modal" data-target=".bd-example-modal-lg2">Add New</a></span>
+                            @*<div id="suBcustoMers"></div>*@
+                            @Html.DropDownList("SubClientId", Enumerable.Empty<SelectListItem>(), string.Empty, new { @class = "form-control SearchDropdown", @id = "SubcustomEr", @name = "", @required = "required" })
+                        </div>
+                        <div class="form-group col-md-2"></div>
+
+                        <div class="col-lg-4">
+                            <table class="table table-bordered">
+                                <tbody>
+                                    <tr>
+                                        <td> Reference No: </td>
+                                        <td id="ReferenceNo" class="font-weight-bold">  </td>
+                                    </tr>
+                                    <tr>
+                                        <td> TRN </td>
+                                        <td id="TRN" class="font-weight-bold"> </td>
+                                    </tr>
+                                    <tr>
+                                        <td> Quote Date </td>
+                                        <td class="font-weight-bold" id="DatE">  </td>
+                                    </tr>
+
+                                </tbody>
+                            </table>
+
+                        </div>
+
+
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group col-md-3">
+                    <label for="Client" class="col-form-label">Quotation Status <em class="text-danger">*</em></label>
+                    <div id="QStatus"></div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="Client" class="col-form-label">Message <em class="text-danger">*</em></label>
+                    <textarea class="form-control" id="Description" name="Description" rows="6"></textarea>
+                    @*<textarea class="form-control" id="Description" name="Description" rows="4"></textarea>*@
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group col-md-3">
+                    <label for="" class="col-form-label" style="display:inline-block">PerItem Discount</label>
+                    <div id="checkPerItem"></div>
+                </div>
+
+                <div class="form-group col-md-3">
+                    <label for="" class="col-form-label" style="display:inline-block"> Flat Discount</label>
+                    <div id="checkFlat"></div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group col-md-3">
+                    <label for="" class="col-form-label" style="display:inline-block">Number(AED) </label>
+                    <div id="discounTFlat"></div>
+                </div>
+
+                <div class="form-group col-md-3">
+                    <label for="" class="col-form-label" style="display:inline-block">Percentage(%) </label>
+                    <div id="discounTPercentage"></div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    <div id="gridContainer"></div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-3">
+                    <label class="col-form-label">Working Days: </label>
+                    <div id="workingDays"></div>
+                </div>
+                <div class="col-md-6"></div>
+                <div class="col-md-3">
+                    <label class="col-form-label">Flat Discount Amount(%) </label>
+                    <input type="number" name="Discount" id="FlatDiscount" value="0" class="form-control">
+                </div>
+            </div>
+
+            <input type="hidden" id="GrandTotal" name="Total" />
+
+        </form>
+        <hr class="sidebar-divider d-none d-md-block">
+        <div class="row">
+            <div class="col-md-12">
+                @*<blockquote class="blockquote">
+                        <h3 class="text-center">QUOTE CURRENCY: AED</h3>
+                    </blockquote>*@
+
+                <div class="html-editor" id="html-editor"></div>
+            </div>
+
+            @*<div class="col-lg-6">
+                    <table class="table table-bordered">
+                        <tbody>
+                            <tr>
+                                <td> Bank Name: </td>
+                                <td id="BankName" class="font-weight-bold">  </td>
+                            </tr>
+                            <tr>
+                                <td> Company Name: </td>
+                                <td id="BankCompanyName" class="font-weight-bold"> </td>
+                            </tr>
+                            <tr>
+                                <td> Account Number: </td>
+                                <td id="AccountNumber" class="font-weight-bold"> </td>
+                            </tr>
+                            <tr>
+                                <td> IBAN: </td>
+                                <td id="IBAN" class="font-weight-bold"> </td>
+                            </tr>
+
+                            <tr>
+                                <td> SWIFT Code: </td>
+                                <td id="SwiftCode" class="font-weight-bold"> </td>
+                            </tr>
+
+                        </tbody>
+                    </table>
+                </div>*@
+        </div>
+        <form>
+            <hr class="sidebar-divider d-none d-md-block">
+            <div class="row">
+                <div class="col-md-4"></div>
+                <div class="col-md-4">
+                    <button type="button" class="btn btn-secondary" onclick="onSave()">Save</button>
+                    <button type="button" class="btn btn-info" onclick="onSubmit()">Submit</button>
+                </div>
+                <div class="col-md-4"></div>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+
+<!-- Modal -->
+<div class="modal fade bd-example-modal-lg" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered  modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Add New Client</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+
+
+                <script>
+                    var companies;
+                    var clientsdata = [];
+                    var val;
+
+
+                    function openModal() {
+                        console.log("1");
+                        Clientsgrid(clientsdata);
+
+                    }
+
+                    function Clientsgrid(clientsdata) {
+                        //$.get('/Company/GetActiveCompanies', function (data) {
+                        //    companies = data;
+
+
+                        $.get('/Admin/GetAllRegions?comPanYID=' + CompanyID, function (data) {
+                            regions = data;
+
+                            $("#gridContainerClients").dxDataGrid({
+                                dataSource: clientsdata,
+                                keyExpr: "ClientId",
+                                showBorders: true,
+                                hoverStateEnabled: true,
+                                paging: {
+                                    pageSize: 10
+                                },
+                                editing: {
+                                    mode: 'form',
+                                    allowAdding: true,
+                                    allowUpdating: true,
+                                    useIcons: true
+                                },
+                                columnsAutoWidth: true,
+                                showBorders: true,
+                                filterRow: {
+                                    visible: true,
+                                    applyFilter: "auto"
+                                },
+                                searchPanel: {
+                                    visible: true,
+                                    placeholder: "Search..."
+                                },
+                                headerFilter: {
+                                    visible: true
+                                },
+                                columns: [
+                                    //{
+                                    //    dataField: "ClientId",
+                                    //    allowEditing: false
+                                    //},
+                                    {
+                                        dataField: "ClientName",
+                                        validationRules: [{ type: 'required' }],
+                                    },
+                                    {
+                                        dataField: 'RegionId',
+                                        caption: 'Region',
+                                        validationRules: [{ type: 'required' }],
+                                        lookup: {
+                                            dataSource: regions,
+                                            displayExpr: 'Name',
+                                            valueExpr: 'RegionId',
+                                        },
+                                    },
+                                    {
+                                        dataField: "Country",
+                                        validationRules: [{ type: 'required' }],
+                                    },
+                                    {
+                                        dataField: "Email"
+                                    },
+                                    {
+                                        dataField: "RefrenceAlias"
+                                    },
+                                    {
+                                        dataField: "Reference"
+                                    },
+                                    {
+                                        dataField: "Landline"
+                                    },
+                                    {
+                                        dataField: "Address1",
+                                        validationRules: [{ type: 'required' }],
+                                    },
+                                    {
+                                        dataField: "Address2"
+                                    },
+                                    {
+                                        dataField: "Address3"
+                                    },
+                                    {
+                                        dataField: "TRN"
+                                    }],
+                                onRowInserted: function (e) {
+                                    var model = e.data;
+                                    model.CompanyId = CompanyID;
+                                    $.post('/Admin/AddNewClient', { model, model }, function (data) {
+
+                                        if (data) {
+                                            $("#ReferenceNo").text(data.Reference);
+                                            $('#customEr').append("<option value='" + data.ClientId + "' selected>" + data.ClientName + "</option>");
+
+                                            toastr.success('Add Successfully');
+                                            $('#exampleModalCenter').modal('hide');
+
+                                        }
+                                    });
+                                },
+                                onRowUpdated: function (e) {
+                                    var model = e.data;
+                                    $.post('/Admin/UpdateClient', { model, model }, function (data) {
+
+                                        if (data) {
+                                            toastr.success('Update Successfully');
+                                            $('#exampleModalCenter').modal('hide')
+
+
+                                        }
+                                    });
+                                },
+                            });
+                        });
+                    }
+
+                </script>
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <div id="gridContainerClients"></div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal-2 -->
+<div class="modal fade bd-example-modal-lg2" id="exampleModalCenter2" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered  modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Add New Sub Client</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+
+
+                <script>
+                    var companies;
+                    var sclientsdata = [];
+                    var val;
+
+                    function openModal2() {
+                        console.log("2");
+                        console.log(input, 'inPuT0000');
+                        SubClientsgrid(sclientsdata);
+
+                        $.get('/Admin/GetClients?ID=' + input, function (data) {
+                            clients = data;
+
+                            $('#cliEntName').html(clients.ClientName);
+                        });
+                    }
+
+
+
+                    //$.get('/Admin/GetAllClients', function (data) {
+                    function SubClientsgrid(sclientsdata) {
+                        $.get('/Company/GetActiveCompanies', function (data) {
+                            companies = data;
+
+                            $("#gridContainerSClients").dxDataGrid({
+                                dataSource: sclientsdata,
+                                keyExpr: "SubClientId",
+                                showBorders: true,
+                                hoverStateEnabled: true,
+                                paging: {
+                                    pageSize: 10
+                                },
+                                editing: {
+                                    mode: 'cell',
+                                    allowAdding: true,
+                                    allowUpdating: true,
+                                    useIcons: true
+                                },
+                                columnsAutoWidth: true,
+                                showBorders: true,
+
+                                searchPanel: {
+                                    visible: true,
+                                    placeholder: "Search..."
+                                },
+                                columns: [
+                                    //{
+                                    //    dataField: 'ClientId',
+                                    //    caption: 'Client',
+                                    //    validationRules: [{ type: 'required' }],
+                                    //    lookup: {
+                                    //        dataSource: clients,
+                                    //        displayExpr: 'ClientName',
+                                    //        valueExpr: 'ClientId',
+                                    //    },
+                                    //},
+                                    {
+                                        dataField: "ClientName",
+                                        caption: "Sub Client Name"
+                                    },
+                                    {
+                                        dataField: "Email",
+                                        validationRules: [{ type: 'required', message: 'Email is required' },
+                                        { type: 'email', message: 'Email is invalid' }]
+                                    },
+                                    {
+                                        dataField: "Phone"
+                                    },
+                                    {
+                                        dataField: "Landline"
+                                    },
+                                    {
+                                        dataField: "Whatsapp"
+                                    }],
+                                onRowInserted: function (e) {
+                                    var model = e.data;
+                                    model.ClientId = input;
+                                    console.log(model, 'moDeL');
+                                    $.post('/Admin/AddNewSubClient', { model, model }, function (data) {
+
+                                        if (data) {
+                                            //$("#ReferenceNo").text(data.Reference);
+                                            $('#SubcustomEr').append("<option value='" + data.SubClientId + "' selected>" + data.ClientName + "</option>");
+
+                                            toastr.success('Add Successfully');
+                                            $('#exampleModalCenter2').modal('hide');
+                                            $('#exampleModalCenter2').html('');
+
+                                        }
+                                    });
+                                },
+                                onRowUpdated: function (e) {
+                                    var model = e.data;
+                                    $.post('/Admin/UpdateSubClient', { model, model }, function (data) {
+
+                                        if (data) {
+                                            toastr.success('Update Successfully');
+                                            $('#exampleModalCenter2').modal('hide')
+                                            $('#exampleModalCenter2').html('');
+
+
+                                        }
+                                    });
+                                },
+                            });
+
+                        });
+                    }
+
+                </script>
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <h4 class="card-title">Client</h4>
+
+                                <ul class="list-arrow">
+                                    <li id="cliEntName"></li>
+                                </ul>
+
+                                <div id="gridContainerSClients"></div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

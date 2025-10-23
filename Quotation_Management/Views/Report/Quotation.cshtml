@@ -1,0 +1,83 @@
+﻿@{ 
+     var custoMers = (IEnumerable<SelectListItem>)ViewData["Customers"];
+ }
+<script>
+    cmpId = 0;
+
+    $(function () {
+        var data = JSON.parse(localStorage.getItem('User'));
+        cmpId = data.CompanyId;
+        if (cmpId == null || cmpId == 0 || cmpId == undefined) {
+            toastr.error('No Company Assign!');
+        }
+    });
+
+    document.onload = $(function () {
+        $.get('/Report/ViewQuotation?companyId=' + cmpId , function (data) {
+             $('#repotdata').html(data);
+
+        });
+    });
+     
+
+    function onSubmit() {
+        var model = $('#cuStoMerForm').serializeArray();
+            console.log(model, "model");
+         $.post('/Admin/SubmitReport?email=' + model[0].value, function (data) {
+             console.log(data, "Return");
+             if (data.Success) {
+                 toastr.success(data.Success);
+                    setTimeout(function () {
+                        window.location.reload();
+                    }, 3000);
+             }
+             else if (data.Message) {
+                 console.log("RDSS");
+                 toastr.error(data.Message);
+                 setTimeout(function () {
+                     window.location.reload();
+                 }, 3000);
+             }
+            //    else {
+            //        setTimeout(function () {
+            //            toastr.error('Error!');
+            //        }, 2000);
+
+            //    };
+            });
+        }   
+</script>
+ 
+<style>
+    .dxrd-image-fullscreen, .dxrd-toolbar-item-separator, .dxrd-image-print-page,
+    .dxrd-image-search, .dxrd-right-tabs, .dxrd-preview-export-toolbar-item, .dxrd-toolbar-item-zoom {
+        display: none !important;
+    } 
+</style>
+  
+    <form id="cuStoMerForm" class="forms-sample" novalidate="">
+        @Html.DropDownList("Email", custoMers, "Select Customer", new { @class = "form-control", @id = "", @name = "" })
+
+    </form>
+
+
+    <div class="card">
+        <div class="card-header">
+            <h1 class="">Report</h1>
+        </div>
+        <div class="card-body">
+            <div class="row">
+
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <div class="x_panel">
+                        <div id="repotdata">
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+        </div>
+

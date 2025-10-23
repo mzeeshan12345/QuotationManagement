@@ -1,0 +1,357 @@
+﻿@{
+    var useRs = (IEnumerable<SelectListItem>)ViewData["Users"];
+    var cliEnts = (IEnumerable<SelectListItem>)ViewData["Clients"];
+
+}
+<script>
+
+        var simpleProducts = [];
+        var simpleProducts1 = [];
+        var arrayPages = [];
+        var input;
+    var inputUser;
+
+
+    $(function () {
+        var getPages = JSON.parse(localStorage.getItem('Pages'));
+        Pages = getPages.find(dx => dx.PageName == "Assign Client"); 
+        if (Pages.Create == true) {
+            $("#showBtn").show();
+        }
+        else {
+            $("#showBtn").hide();
+        }
+
+        });
+
+    function GetUserId(useRs) {
+
+        inputUser = $(useRs).val();
+        @*$("#showBtn1").css("visibility", "visible");
+         $.get('@Url.Action("GetAssignedSubClients", "Admin")', { id: inputUser }, function (data) {
+                simpleProducts1 = data;
+                console.log(simpleProducts1, "sCliEntS");
+                AssignedSubClientgrid(simpleProducts1);
+            });*@
+    }
+
+    function GetSubClients(cliEnts) {
+            $("#showBtn").css("visibility", "visible");
+        input = $(cliEnts).val();
+        //$.get('@@Url.Action("GetSubClientsByMain", "Admin")', { clientID: input, id: inputUser }, function (data) {
+        $.get('@Url.Action("GetSubClientsByMain", "Admin")', { clientID: input}, function (data) {
+                simpleProducts = data; 
+                console.log(simpleProducts, "sCliEntS");
+                SubClientgrid(simpleProducts);
+            });
+    }
+
+
+    function AssignedSubClientgrid(simpleProducts1) {
+
+        const dataGrid = $.get('@Url.Action("GetAllClients", "Admin")', function (data) {
+                var clienT = data;
+
+            $("#gridContainer1").dxDataGrid({
+                dataSource: simpleProducts1,
+                 showBorders: true,
+                columnAutoWidth: true,
+                allowColumnResizing: true,
+                columnHidingEnabled: true,
+                paging: {
+                    pageSize: 12
+                },
+                editing: {
+                    mode: 'cell',
+                    allowUpdating: true,
+                    allowDeleting: false,
+                    useIcons: true
+                },
+                columnsAutoWidth: true,
+                showBorders: true,
+                filterRow: {
+                    visible: true,
+                    applyFilter: "auto"
+                },
+                searchPanel: {
+                    visible: true,
+                    placeholder: "Search..."
+                },
+                headerFilter: {
+                    visible: true
+                },
+                columns: [
+                    {
+                        dataField: 'ClientId',
+                        caption: 'Client',
+                        editorOptions: {
+                            showClearButton: true
+                        },
+                        lookup: {
+                            dataSource: clienT,
+                            displayExpr: 'ClientName',
+                            valueExpr: 'ClientId',
+                        },
+                    },
+                    {
+                        dataField: "SubClientId",
+                        visible: false
+                    },
+                    {
+                        dataField: "ClientName",
+                        caption: "Sub Client",
+                        allowEditing: false
+                    },
+                    {
+                        dataField: "Name",
+                        visible: false
+                    },
+                    {
+                        dataField: "UserId",
+                        visible: false
+                    },
+                    {
+                        dataField: "Email",
+                        allowEditing: false,
+                        visible: false
+                    },
+                    {
+                        dataField: "CompanyId",
+                        visible: false
+                    },
+                    {
+                        dataField: "CreatedAt",
+                        visible: false
+                    },  {
+                        dataField: "Reference",
+                        visible: false
+                    },
+                    {
+                        dataField: "Phone",
+                        visible: false
+                    },
+                    {
+                        dataField: "Landline",
+                        visible: false
+                    },
+                    {
+                        dataField: "Whatsapp",
+                        visible: false
+                    },
+                    {
+                        dataField: "Assign",
+                        dataType: "boolean"
+                    }],
+
+            });
+         });
+    }
+
+
+    function SubClientgrid(simpleProducts) {
+
+            $("#gridContainer").dxDataGrid({
+                dataSource: simpleProducts,
+                keyExpr: "SubClientId",
+                showBorders: true,
+                columnAutoWidth: true,
+                allowColumnResizing: true,
+                columnHidingEnabled: true,
+                paging: {
+                    pageSize: 12
+                },
+                editing: {
+                    mode: 'cell',
+                    allowUpdating: true,
+                    allowDeleting: false,
+                    useIcons: true
+                },
+                columnsAutoWidth: true,
+                showBorders: true,
+                filterRow: {
+                    visible: true,
+                    applyFilter: "auto"
+                },
+                searchPanel: {
+                    visible: true,
+                    placeholder: "Search..."
+                },
+                headerFilter: {
+                    visible: true
+                },
+                columns: [
+                    {
+                        dataField: "SubClientId",
+                        allowEditing: false
+                    },
+                    {
+                        dataField: "SubClientName",
+                        caption: "SubClient",
+                        allowEditing: false
+                    }, 
+                    {
+                        dataField: 'UserId',
+                        visible: false
+                    },
+                    {
+                        dataField: "Email", 
+                        visible: false
+                    },
+                    {
+                        dataField: "Assign",
+                        dataType: "boolean"
+                    },
+                    {
+                        dataField: 'CompanyId',
+                        visible: false
+                    },
+                    {
+                        dataField: 'ClientId',
+                        visible: false
+                    },
+                    //{
+                    //    dataField: "SubClientName",
+                    //    visible: false
+                    //},
+                    {
+                        dataField: "CreatedAt",
+                        visible: false
+                    },  {
+                        dataField: "Reference",
+                        visible: false
+                    },
+                    {
+                        dataField: "Phone",
+                        visible: false
+                    },
+                    {
+                        dataField: "Landline",
+                        visible: false
+                    },
+                    {
+                        dataField: "Whatsapp",
+                        visible: false
+                    }
+
+                ]
+            });
+        }
+
+
+        function onSubmit(model) {  
+            model.forEach(function (element) {
+                if (element.Assign == true) {
+                    element.UserId = inputUser,
+                        element.ClientId = input
+                }
+                else {
+                    element.UserId = null,
+                        element.ClientId = input
+                }
+            });
+             
+            $.post('/Admin/AddClientPermission', {permission: model }, function (data) {
+                console.log(data, "Data Return");
+
+                if (data) {
+                    toastr.success('Add Successfully');
+                setTimeout(function () {
+                $.get('@Url.Action("GetSubClientsByMain", "Admin")', { clientID: input, id: inputUser }, function (data) {
+                var dataGrid = $("#gridContainer").dxDataGrid("instance");
+                dataGrid.option('dataSource', data);
+                }); 
+                    }.bind(this), 3000);
+                }
+            });
+    }
+
+     
+
+    @*function onUnAssign(model) {
+        console.log(input, "input");
+        console.log(model);
+        console.log(inputUser, "useR");
+
+        var fx = {
+            UserId: inputUser,
+            ClientId: input
+        }
+        console.log(fx, "moDel");
+
+        $.post('/Admin/UnAssignClients', { model: fx, permission: model }, function (data) {
+            console.log(data, "Data Return");
+
+            if (data) {
+                    $.get('@Url.Action("GetAssignedSubClients", "Admin")', { id: inputUser }, function (data) {
+
+                var dataGrid = $("#gridContainer1").dxDataGrid("instance");
+                dataGrid.option('dataSource', data);
+            });
+
+                toastr.success('Add Successfully');
+                //$("#gridContainer1").load(location.href + " #gridContainer1");
+
+            }
+        });
+    }*@
+
+</script>
+<div class="card shadow mb-4">
+    <!-- Card Header - Accordion -->
+    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary">Assign Permission</h6>
+    </div>
+    <!-- Card Content - Collapse -->
+    <div class="collapse show" id="collapseCardExample" style="">
+        <div class="card-body">
+            <div class="form-row">
+                <div class="form-group col-md-4">
+                    <label for="status">User</label>
+                    @Html.DropDownList("Id", useRs, "Select User", new { @class = "form-control", @name = "Name", @id = "Id", @onchange = "GetUserId(this)" })
+                </div>
+                
+                <div class="form-group col-md-4">
+                    <label for="status">Client</label>
+                    @Html.DropDownList("ClientId", cliEnts, "Select Client", new { @class = "form-control", @name = "ClientName", @id = "ClientId", @onchange = "GetSubClients(this)" })
+                </div>
+            </div>
+
+            <div class="form-row">
+                @*<div class="form-group col-md-6" id="unAssignGrid">
+
+                    <div id="gridContainer1"></div>
+                    <br />
+                    <div class="form-row">
+                        <div class="form-group col-md-4"></div>
+                        <div class="form-group col-md-4">
+                            <button class="btn btn-gradient-info mr-2" id="showBtn1" type="button" style="visibility: hidden;" onclick="onUnAssign(simpleProducts1)">Un Assign </button>
+                        </div>
+                        <div class="form-group col-md-4"></div>
+                    </div>
+                </div>*@
+                
+                <div class="form-group col-md-12">
+
+                    <div id="gridContainer"></div>
+                    <br />
+
+                    <div class="form-row">
+                        <div class="form-group col-md-4"></div>
+                        <div class="form-group col-md-4">
+                            <button class="btn btn-gradient-info mr-2" id="showBtn" type="button" style="visibility: hidden;" onclick="onSubmit(simpleProducts)">Assign </button>
+                        </div>
+                        <div class="form-group col-md-4"></div>
+                    </div>
+                </div>
+            </div>
+
+            @*<div class="form-row">
+                <div class="form-group col-md-4"></div>
+                <div class="form-group col-md-4">
+                    <button class="btn btn-gradient-info mr-2" id="showBtn" type="button" style="visibility: hidden;" onclick="onSubmit(simpleProducts)">Assign </button>
+                </div>
+                <div class="form-group col-md-4"></div>
+            </div>*@
+        </div>
+    </div>
+</div>

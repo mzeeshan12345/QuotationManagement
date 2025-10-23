@@ -1,0 +1,98 @@
+﻿
+@{
+    ViewData["Title"] = "Main Panel";
+}
+
+<script>
+    var companydata = [];
+     var resulT;
+    $(function () {
+        getCompanies();
+    });
+
+    function EnterCompany(id) {
+        console.log(id, "iD");
+         top.location.href = '/Home/MenuPanel?id=' + id;
+    }
+
+
+    function routeAddCompay() {
+        top.location.href = '/Company/AddCompany'
+    }
+
+    function EditCompany(iD) {
+        top.location.href = '/Company/UpdateCompany?id=' + iD;
+    }
+
+    function DeleteCompany(ID) {
+        $.post('/Company/DeleteCompany?key=' + ID, function (data) {
+
+            toastr.error('Company Deleted Successfully');
+            setTimeout(function () {
+                window.location.reload();
+                }.bind(this), 3000);
+
+        });
+    }
+
+    function getCompanies() {
+
+        $.get('@Url.Action("CurrentUserList", "Admin")', function (data) {
+            roles = data;
+            console.log(roles.result, "result roLes");
+
+            var dxdx = roles.result.filter(r => r.RoleName == 'SuperAdmin');
+            console.log(dxdx.length, "dxsdx");
+            if (dxdx.length > 0) {
+                $.get('/Home/GetCompanies', function (data) {
+                    var comp = data;
+                    console.log(comp)
+
+                    resulT = "";
+                    for (var i = 0; i < comp.length; i++) {
+                        //resulT += ' <div class="col-6"><div class="card"><div class="card-header"><h4 class=""> ' + comp[i].CompanyName +' </h4 > </div ><div class="card-body">  </div> </div><br>  </div>'
+                        resulT += ' <div class="col-md-4 stretch-card grid-margin"> <div class="card bg-gradient-info card-img-holder text-white card_height"> <div class="card-body"> <img src="/Web/assets/images/dashboard/circle.svg" class="card-img-absolute" alt="circle-image" />  <h2 class="mb-5"> <i class="mdi mdi-home-modern menu-icon"></i> ' + comp[i].CompanyName + '   <button type="button" onclick="routeAddCompay()" class="btn btn-primary mdi-24px float-right"> Add</button>  </h2> <a class="cursor_Detail" onclick="EnterCompany(' + comp[i].CompanyId + ')"> Details </a> &nbsp&nbsp   &nbsp&nbsp  <a class="cursor_Detail" onclick="EditCompany(' + comp[i].CompanyId + ')"> Edit </a>   &nbsp&nbsp   <button type="button" onclick="DeleteCompany(' + comp[i].CompanyId + ')" class="btn btn-gradient-danger btn-icon-text"> <i class="mdi mdi-upload btn-icon-prepend"></i> Delete</button>   </div> </div> </div>'
+                    }
+                    $('#resulT').html('');
+                    $('#resulT').append(resulT);
+
+                });
+
+            }
+            else {
+                $.get('/Home/GetUserCompanies', function (data) {
+                    var comp = data;
+                    console.log(comp)
+
+                    resulT = "";
+                    for (var i = 0; i < comp.length; i++) {
+                        //resulT += ' <div class="col-6"><div class="card"><div class="card-header"><h4 class=""> ' + comp[i].CompanyName +' </h4 > </div ><div class="card-body">  </div> </div><br>  </div>'
+                        resulT += ' <div class="col-md-4 stretch-card grid-margin"> <div class="card bg-gradient-info card-img-holder text-white card_height"> <div class="card-body"> <img src="/Web/assets/images/dashboard/circle.svg" class="card-img-absolute" alt="circle-image" />  <h2 class="mb-5"> <i class="mdi mdi-home-modern menu-icon"></i> ' + comp[i].CompanyName + ' </h2> <a class="cursor_Detail" onclick="EnterCompany(' + comp[i].CompanyId + ')"> Details </a> </div> </div> </div>'
+                    }
+                    $('#resulT').html('');
+                    $('#resulT').append(resulT);
+
+                });
+            }
+        });
+    }
+</script>
+
+<style>
+    .sidebar .nav .nav-item.active > .nav-link .menu-title {
+        color: #4c5460 !important;
+        font-family: "ubuntu-regular", sans-serif !important;
+    }
+
+    .sidebar .nav .nav-item.active > .nav-link i {
+        color: #3e4b5b !important;
+    }
+
+    .cursor_Detail {
+        cursor: pointer !important;
+    }
+</style>
+
+
+<div class="row" id="resulT"></div>
+

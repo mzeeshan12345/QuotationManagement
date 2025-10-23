@@ -1,0 +1,81 @@
+﻿
+@{
+    var clienTS = (IEnumerable<SelectListItem>)ViewData["Regions"];
+    var countries = (IEnumerable<SelectListItem>)ViewData["Countries"];
+}
+
+
+<form id="clientForm" class="forms-sample" novalidate="">
+
+    <div class="form-row">
+
+        <div class="form-group col-md-3">
+            <label for="Client" class="col-form-label" style="display:inline-block">Client Name <em class="text-danger">*</em></label>
+            <input type="text" name="ClientName" id="ClientName" class="form-control">
+        </div>
+
+        <div class="form-group col-md-3">
+            <label for="Client" class="col-form-label">Country <em class="text-danger">*</em></label>
+            @Html.DropDownList("Country", countries, "Select Country", new { @class = "form-control SearchDropdown", @id = "Country", @name = "Country", @required = "required" })
+            @*<input type="text" name="Country" id="Country" class="form-control">*@
+        </div>
+        <div class="form-group col-md-3">
+            <label for="Client" class="col-form-label">Region <em class="text-danger">*</em></label>
+            @Html.DropDownList("RegionId", clienTS, "Select Region", new { @class = "form-control SearchDropdown", @id = "RegionId", @name = "RegionId", @required = "required" })
+        </div>
+        <div class="form-group col-md-3">
+            <label for="Client" class="col-form-label" style="display:inline-block">Email</label>
+            <input type="text" name="Email" id="Email" class="form-control">
+        </div>
+    </div>
+
+
+    <div class="form-row">
+
+        <div class="form-group col-md-3">
+            <label for="Client" class="col-form-label" style="display:inline-block">Landline </label>
+            <input type="text" name="Landline" id="Landline" class="form-control">
+        </div>
+        <div class="form-group col-md-3">
+            <label for="Client" class="col-form-label" style="display:inline-block">Contact Person </label>
+            <input type="text" name="ContactPerson" id="ContactPerson" class="form-control">
+        </div>
+        <div class="form-group col-md-3">
+            <label for="TRN" class="col-form-label" style="display:inline-block">RefrenceAlias </label>
+            <input type="text" name="RefrenceAlias" id="RefrenceAlias" class="form-control">
+        </div>
+        <div class="form-group col-md-3">
+            <label for="Reference" class="col-form-label" style="display:inline-block">Reference </label>
+            <input type="text" name="Reference" id="Reference" class="form-control">
+        </div>
+    </div>
+    
+    
+    <div class="form-row"> 
+        <div class="form-group col-md-3">
+            <label for="TRN" class="col-form-label" style="display:inline-block">TRN </label>
+            <input type="text" name="TRN" id="TRN" class="form-control">
+        </div>
+        <div class="form-group col-md-3">
+            <label for="TRN" class="col-form-label" style="display:inline-block">TRN File </label>
+            <input type="file" name="TRNFile" id="TRNFile" onchange="uploadFiles(event)" class="form-control">
+        </div>
+    </div>
+
+
+    <div class="form-row">
+        <div class="form-group col-md-3">
+            <label for="" class="col-form-label" style="display:inline-block">Address 01 <em class="text-danger">*</em></label>
+            <input type="text" name="Address1" id="Address1" class="form-control">
+        </div>
+        <div class="form-group col-md-3">
+            <label for="" class="col-form-label" style="display:inline-block">Address 02  </label>
+            <input type="text" name="Address2" id="Address2" class="form-control">
+        </div>
+        <div class="form-group col-md-3">
+            <label for="" class="col-form-label" style="display:inline-block">Address 03  </label>
+            <input type="text" name="Address3" id="Address3" class="form-control">
+        </div>
+    </div>
+    <hr class="sidebar-divider d-none d-md-block">
+</form>

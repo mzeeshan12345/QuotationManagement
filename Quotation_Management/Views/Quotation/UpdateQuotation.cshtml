@@ -1,0 +1,1161 @@
+﻿@{
+    var custoMers = (IEnumerable<SelectListItem>)ViewData["Customers"];
+}
+
+<script>
+    var quotdata = [];
+    var Status = [];
+    var quotes;
+    var compBank;
+    var comp;
+    var tc;
+    var url = "";
+    var termsdata;
+    var cv = "";
+    var QId;
+    var fcx ;
+    var date;
+    var existRole;
+    var isSuperAdmin;
+    var isManager;
+    var approvaL = ['Pending', 'Approved','Reject'];
+    var quotationStatus = ['Proposal', 'Quotation', 'Waiting PO', 'PO Received', 'Invoiced', 'Cancelled'];
+    var statusApproval = ['Pending', 'Approved', 'Reject'];
+    var perms;
+
+    var percentageValue;
+    var flatValue;
+
+    var isPerItem;
+    var isFlat;
+    var toTal;
+
+    var authPages1;
+    var roles1;
+    var permission;
+    var menu1;
+    var count1 = 0;
+    var z = 0;
+
+    $(function () {
+        $('#ReasonBox').hide();
+        getCompAny();
+        var url_string = top.location.href
+        var url = new URL(url_string);
+        QId = url.searchParams.get('id');
+        getQuotById(QId);
+        var today = new Date();
+        date = formatDate(new Date(today));
+        $('#DatE').html(date); 
+
+        $("#html-editor").dxHtmlEditor({
+            height: 370,
+            toolbar: {
+                items: [
+                    "undo", "redo", "separator",
+                    {
+                        name: "size",
+                        acceptedValues: ["8pt", "10pt", "12pt", "14pt", "18pt", "24pt", "36pt"]
+                    },
+                    {
+                        name: "font",
+                        acceptedValues: ["Arial", "Courier New", "Georgia", "Impact", "Lucida Console", "Tahoma", "Times New Roman", "Verdana"]
+                    },
+                    "separator", "bold", "italic", "strike", "underline", "separator",
+                    "alignLeft", "alignCenter", "alignRight", "alignJustify", "separator",
+                    {
+                        name: "header",
+                        acceptedValues: [false, 1, 2, 3, 4, 5]
+                    }, "separator",
+                    "orderedList", "bulletList", "separator",
+                    "color", "background", "separator",
+                    "clear", "codeBlock", "blockquote"
+                ]
+            },
+            mediaResizing: {
+                enabled: true
+            },
+            export: {
+                enabled: true,
+                printingEnabled: false
+            },
+
+        });
+
+            GetSubitem(); 
+     });
+
+
+    function GetSubitem() {
+
+        $.get('/Quotation/GetItems', function (data) {
+            fcx = data;
+            //fcx = iTemSs.filter(d => d.MainItemId == rowData.MainItemId);
+
+        });
+    }
+
+    function formatDate(date) {
+        var day = date.getDate();
+        var month = date.getMonth() + 1;
+        var year = date.getFullYear();
+
+        var formatted = (day < 10 ? "0" : "") + day + "-" + (month < 10 ? "0" : "") + month + "-" + year;
+        return formatted;
+    }
+
+            function getQuotById() {
+             $.get('/Quotation/GetQuotation?quoteID=' + QId, function (data) {
+                termsdata = data;
+                 $(".dx-htmleditor-content").html(termsdata.TermsConditions);
+                 $('#ReferenceNo').html(termsdata.ClientReference);
+                 $('#Discount').val(termsdata.Discount);
+                 $('#Description').val(termsdata.Description);
+                 $('#Text').val(termsdata.Text);
+
+
+
+                 $('#checkPerItem').dxCheckBox({
+                     elementAttr: {
+                         name: "IsPerItem",
+                         class: "mt_25",
+                     },
+                     value: termsdata.isPerItem,
+                     onValueChanged: function (e) {
+
+                         isPerItem = e.value;
+                         if (isPerItem == true) {
+
+                             $("#Discount").val(0);
+                             $("#Discount").attr('readonly', true);
+
+                             $('#discounTPercentage').dxCheckBox({
+                                 value: null,
+                                 disabled: false,
+                             }).dxCheckBox('instance');
+
+                             $('#discounTFlat').dxCheckBox({
+                                 value: null,
+                                 disabled: false,
+                             }).dxCheckBox('instance');
+
+                             $('#checkFlat').dxCheckBox({
+                                 value: null,
+                                 disabled: true,
+                             }).dxCheckBox('instance');
+                         }
+                         else {
+
+                             $('#discounTPercentage').dxCheckBox({
+                                 value: null,
+                                 disabled: true,
+                             }).dxCheckBox('instance');
+
+                             $('#discounTFlat').dxCheckBox({
+                                 value: null,
+                                 disabled: true,
+                             }).dxCheckBox('instance');
+
+                             $('#checkFlat').dxCheckBox({
+                                 value: null,
+                                 disabled: false,
+                             }).dxCheckBox('instance');
+
+                             $("#Discount").val(0);
+                             $("#Discount").attr('readonly', false);
+                         }
+                     },
+                 });
+
+
+                 $('#checkFlat').dxCheckBox({
+                     elementAttr: {
+                         name: "IsFlat",
+                         class: "mt_25",
+                     },
+                     value: termsdata.IsFlat,
+                     onValueChanged: function (e) {
+                         isFlat = e.value;
+                         if (isFlat == true) {
+                             $("#Discount").attr('readonly', false);
+                             $("#Discount").addClass('input-disabled_css');
+
+                             $('#checkPerItem').dxCheckBox({
+                                 value: null,
+                                 disabled: true,
+                             }).dxCheckBox('instance');
+
+                             $('#discounTPercentage').dxCheckBox({
+                                 value: null,
+                                 disabled: false,
+                             }).dxCheckBox('instance');
+
+                             $('#discounTFlat').dxCheckBox({
+                                 value: null,
+                                 disabled: false,
+                             }).dxCheckBox('instance');
+
+                         }
+                         else if (isPerItem != true) {
+
+                             $('#discounTPercentage').dxCheckBox({
+                                 value: null,
+                                 disabled: true,
+                             }).dxCheckBox('instance');
+
+                             $('#discounTFlat').dxCheckBox({
+                                 value: null,
+                                 disabled: true,
+                             }).dxCheckBox('instance');
+
+                             $('#checkPerItem').dxCheckBox({
+                                 value: null,
+                                 disabled: false,
+                             }).dxCheckBox('instance');
+
+                             $("#Discount").val(0);
+                             $("#Discount").attr('readonly', true);
+                         }
+                     },
+                 });
+
+
+                 $('#discounTPercentage').dxCheckBox({
+                     elementAttr: {
+                         name: "Percentage",
+                         class: "mt_25",
+                     },
+                         value: termsdata.Percentage,
+                     onValueChanged: function (e) {
+                         percentageValue = e.value;
+                     },
+                 });
+
+                 $('#discounTFlat').dxCheckBox({
+                     elementAttr: {
+                         name: "Flat", 
+                         class: "mt_25",
+                     },
+                      value: termsdata.FlaT,
+                     onValueChanged: function (e) {
+                         flatValue = e.value;
+                         if (flatValue == true) {
+                             $('#discounTPercentage').dxCheckBox({
+                                 value: null,
+                                 disabled: true,
+                             }).dxCheckBox('instance');
+
+                         }
+                         else {
+                             $('#discounTPercentage').dxCheckBox({
+                                 value: null,
+                                 disabled: false,
+                             }).dxCheckBox('instance');
+                         }
+                     },
+                 });
+
+                 if (termsdata.Text != null) {
+                     $('#ReasonBox').show();
+                 } else {
+                     $('#ReasonBox').hide();
+                 }
+
+                 console.log(termsdata, "termsData");
+
+                 
+                
+                 //$.get('/Admin/GetFlowStatusByCurrentUser', function (data) {
+                 $.get('/Admin/GetFlowStatusByUser?iD=' + termsdata.CreatedBy, function (data) {
+                     var checkperms = data; 
+
+                     var ckPermissioN = checkperms.find(d => d.FlowStatus == termsdata.QuotationStatus);
+                     //var managerPermissioN = checkperms.find(s => s.ManagerApproval == true);
+                     var arr1 = ['Pending'];
+
+                     console.log(ckPermissioN, 'adMinPermissioN');
+ 
+                     if (ckPermissioN && termsdata.QuotationStatus != "Cancelled" && !arr1.includes(termsdata.Manager) && !arr1.includes(termsdata.Admin))
+                     {
+                         $('#QStatus').dxSelectBox({
+                             items: quotationStatus,
+                             value: termsdata.QuotationStatus,
+                             name: "QuotationStatus",
+                             searchEnabled: true,
+                             showClearButton: true,
+                             onValueChanged(currentStatus) {
+ 
+
+                                 var DPermissioN = checkperms.find(d => d.FlowStatus == currentStatus.value);
+                                 console.log(DPermissioN, "DPermissioN");
+                                     /*var arr = ['Pending', 'Reject'];*/
+                                
+                                     $.get('/Quotation/CheckQuotationHistory?quoteID=' + QId + '&status=' + currentStatus.value, function (data) {
+                                         console.log(data, "data");
+                                         if (data == null && DPermissioN.ManagerApproval == true && DPermissioN.AdminApproval == true)
+                                         {
+                                             console.log('1');
+                                             $('#checkedAdmin').dxSelectBox('instance').option('value', 'Pending');
+                                             $('#checked').dxSelectBox('instance').option('value', 'Pending');
+                                         } 
+                                           
+                                         else if (data == null && DPermissioN.AdminApproval == true && DPermissioN.ManagerApproval == false)
+                                         {
+                                             console.log('4');
+
+                                             $('#checkedAdmin').dxSelectBox('instance').option('value', 'Pending');
+                                             $('#checked').dxSelectBox('instance').option('value', 'N/A');
+                                         } 
+
+                                         else if (data == null && DPermissioN.AdminApproval == false && DPermissioN.ManagerApproval == true)
+                                         {
+                                             console.log('5');
+
+                                             $('#checkedAdmin').dxSelectBox('instance').option('value', 'N/A');
+                                             $('#checked').dxSelectBox('instance').option('value', 'Pending');
+                                         }
+
+                                         else if (data == null && DPermissioN.AdminApproval == false && DPermissioN.ManagerApproval == false)
+                                         {
+                                             console.log('6');
+
+                                             $('#checked').dxSelectBox('instance').option('value', 'N/A');
+                                             $('#checkedAdmin').dxSelectBox('instance').option('value', 'N/A');
+                                         }
+                                     });
+                             }
+                         });
+                     }
+                     else {
+                         $('#QStatus').dxSelectBox({
+                             items: quotationStatus,
+                             value: termsdata.QuotationStatus,
+                             name: "QuotationStatus",
+                             searchEnabled: true,
+                             readOnly: true,
+                             showClearButton: true,
+                             onValueChanged(data) {
+                                 console.log(data, 'DaTa');
+
+                                 $.get('/Quotation/CheckQuotationHistory?quoteID=' + QId + '&status=' + data.value, function (data) {
+                                     console.log(data, "data");
+                                     if (data == null) {
+                                         //$('#checked').value = false;
+                                         console.log($('#checked'));
+                                         console.log($('#checked').value);
+                                         termsdata.Admin == false;
+                                         termsdata.Manager == false;
+                                     }
+                                 });
+                             }
+                         });
+                     }
+
+                 });
+                //****Get Current User with roles*****
+                 $.get('@Url.Action("CurrentUserList", "Admin")', function (data) {
+                     roles1 = data;
+                      console.log(roles1.result, "result cccc roLes");
+
+                      // **** Get All Assigned Pages By Role ***
+                     $.post('@Url.Action("GetMethodPermission", "Admin")', { role: roles1.result }, function (data) {
+                         menu1 = data;
+                         console.log(menu1, "menu1");
+
+                           if (menu1.length > 0) {
+                             for (var i = 0; i < menu1.length; i++) {
+                                  count1++
+
+                                 if (menu1[i].PageName == "Approval Method")
+                                 {
+                                     if (menu1[i].Read == true) {
+                                          $('#Status').dxSelectBox({
+                                             items: approvaL,
+                                             value: termsdata.Status,
+                                             name: "Status",
+                                             searchEnabled: true,
+                                             showClearButton: true
+                                         });
+                                     }
+                                     else {
+                                          $('#Status').dxSelectBox({
+                                             items: approvaL,
+                                             value: termsdata.Status,
+                                             name: "Status",
+                                             readOnly: true,
+                                             searchEnabled: true,
+                                             showClearButton: true
+                                         });
+                                     }
+
+                                 }
+
+
+
+                                 //else if (menu1[i].PageName == "Quotation Status")
+                                 //{
+                                 //    if (menu1[i].Read == true) {
+                                 //         $('#QStatus').dxSelectBox({
+                                 //            items: quotationStatus,
+                                 //            value: termsdata.QuotationStatus,
+                                 //             name: "QuotationStatus",
+                                 //            searchEnabled: true,
+                                 //            showClearButton: true
+                                 //        });
+                                 //    }
+                                 //    else {
+                                 //         $('#QStatus').dxSelectBox({
+                                 //            items: quotationStatus,
+                                 //            value: termsdata.QuotationStatus,
+                                 //             name: "QuotationStatus",
+                                 //            readOnly: true,
+                                 //            searchEnabled: true,
+                                 //            showClearButton: true
+                                 //        });
+                                 //    }
+
+                                 //}
+
+
+                             }
+                           }
+                     });
+                     console.log(roles1.result, "roles1.result");
+              existRole = roles1.result; 
+                     //$.get('/Admin/GetFlowStatusByCurrentUser', function (data) {
+                     $.get('/Admin/GetFlowStatusByUser?iD=' + termsdata.CreatedBy, function (data) {
+                   var permission1 = data;
+
+                //Check for approved permission
+                 isManager = roles1.result.filter(dx => dx.RoleName == 'Manager');
+                 isSuperAdmin = roles1.result.filter(dx => dx.RoleName == 'SuperAdmin');
+
+                 var arr = ['Pending', 'Reject'];  
+                 var permission = permission1.find(d => d.FlowStatus == termsdata.QuotationStatus);
+                
+
+                         if (permission && permission.ManagerApproval == true
+                             && isManager.length > 0) {
+                            $('#checked').dxSelectBox({
+                                items: statusApproval,
+                                value: termsdata.Manager,
+                                name: "Manager",
+                                searchEnabled: true,
+                                showClearButton: true,
+                                onValueChanged(data) {
+                                    if (data.value == "Reject") {
+                                        $('#ReasonBox').show();
+                                    } else {
+                                        $('#ReasonBox').hide();
+                                    }
+                                }
+                            });
+                        }
+                        else {
+
+                            $('#checked').dxSelectBox({
+                                items: statusApproval,
+                                value: termsdata.Manager,
+                                name: "Manager",
+                                readOnly: true,
+                                searchEnabled: true,
+                                showClearButton: true
+                            });
+
+                        } 
+                  
+                 if (permission && permission.AdminApproval == true && isSuperAdmin.length > 0)
+                 {
+                          $('#checkedAdmin').dxSelectBox({
+                                items: statusApproval,
+                                value: termsdata.Admin,
+                                name: "Admin",
+                                searchEnabled: true,
+                                showClearButton: true,
+                                onValueChanged(data) {
+                                    if (data.value == "Reject") {
+
+                                        $('#ReasonBox').show();
+                                    } else {
+                                        $('#ReasonBox').hide();
+                                    }
+                                }
+                            });
+                      
+                        }
+                        else {
+
+                            $('#checkedAdmin').dxSelectBox({
+                                items: statusApproval,
+                                value: termsdata.Admin,
+                                name: "Admin",
+                                readOnly: true,
+                                searchEnabled: true,
+                                showClearButton: true
+                            });
+
+                        }
+                   
+            });
+        });
+
+
+                 $.get('/Quotation/GetCustomers', function (data) {
+
+                     $('#Clients').dxSelectBox({
+                         dataSource: new DevExpress.data.ArrayStore({
+                             data: data,
+                         }), inputAttr: {
+                             name: "ClientId"
+                         },
+                         displayExpr: 'ClientName',
+                         valueExpr: 'ClientId',
+                         searchEnabled: true,
+                         showClearButton: true,
+                         value: termsdata.ClientId
+                     }).dxValidator({
+                         validationRules: [{ type: 'required' }]
+                     });
+                 });
+            Quotationgrid(termsdata);
+
+             });
+
+
+    }
+ 
+
+    function getCompAny() {
+        var data = JSON.parse(localStorage.getItem('User'));
+        var cmpId = data.CompanyId;
+        $.get('/Company/GetCompany?cmpID=' + cmpId, function (data) {
+            console.log(data, "Company data")
+            comp = data;
+
+
+            $.get('/Company/GetCompanyBank?iD=' + cmpId, function (data) {
+                console.log(data, "compBank data")
+                compBank = data;
+
+
+
+            $('#CompanyId').html(comp.CompanyId);
+            $('#CompanyName').html(comp.CompanyName);
+            $('#BankCompanyName').html(comp.CompanyName);
+            $('#TRN').html(comp.TRN);
+            $('#Email').html('Email: ' + comp.Email);
+            $('#Address').html(comp.Address);
+            $('#Phone').html('Tel: ' + comp.Phone);
+            $('#Fax').html('Fax: ' + comp.Fax);
+            $('#Website').html('Website: ' + comp.Website);
+             $('#Footer').html(comp.Footer);
+
+                $('#BankName').html(compBank.BankName);
+                $('#AccountNumber').html(compBank.AccountNumber);
+                $('#IBAN').html(compBank.IBAN);
+                $('#SwiftCode').html(compBank.SwiftCode);
+        });
+      });
+   }
+
+
+    function Quotationgrid(termsdata) {
+        $.get('/Quotation/GetItemLists', function (data) {
+            quotes = data;
+
+            $.get('/Quotation/GetAllItems', function (data) {
+                iteMs = data;
+
+            $("#gridContainer").dxDataGrid({
+                dataSource: termsdata.Master_Detail_Tables,
+                keyExpr: "MasterDetailId",
+                showBorders: true,
+                columnAutoWidth: true,
+                allowColumnResizing: true,
+                columnHidingEnabled: true,
+                hoverStateEnabled: true,
+                editing: {
+                    mode: 'batch',
+                    allowAdding: true,
+                    allowUpdating: true,
+                    useIcons: true
+                },
+                columnsAutoWidth: true,
+                showBorders: true,
+                filterRow: {
+                    visible: true,
+                    applyFilter: "auto"
+                },
+                searchPanel: {
+                    visible: true,
+                    placeholder: "Search..."
+                },
+                export: {
+                    enabled: true,
+                },
+                onExporting: function (e) {
+                    console.log(e, "e");
+                    e.fileName = "Quotation List"
+                },
+                headerFilter: {
+                    visible: true
+                },
+                onEditorPreparing(e) {
+                    if (e.parentType == 'dataRow' && e.dataField == 'MasterId') {
+                        e.editorOptions.disabled = (typeof e.row.data.MainItemId !== 'number');
+                    }
+                    if (isPerItem != true) {
+                        $("#gridContainer").dxDataGrid("columnOption", "Discount", "visible", false);
+                    }
+                    else if (isPerItem == true) {
+                        $("#gridContainer").dxDataGrid("columnOption", "Discount", "visible", true);
+                    }
+                },
+                onCellPrepared: function (e) {
+                    toTal = e.component.getTotalSummaryValue("toTalLast");
+                    $('#GrandTotal').val(toTal); 
+                },
+
+                columns: [
+                    {
+                        dataField: "CreatedBy",
+                       visible: false
+                    },
+                    {
+                        dataField: 'MainItemId',
+                        caption: 'Item',
+                        //setCellValue: function (rowData, value) {
+                        setCellValue(rowData, value) {
+                            rowData.MainItemId = value;
+                            rowData.MasterId = null;
+                        },
+                        lookup: {
+                            dataSource: iteMs,
+                            valueExpr: 'MainItemId',
+                            displayExpr: 'Name',
+                        },
+                    },
+
+                    {
+                        dataField: 'MasterId',
+                        caption: 'Description',
+                        lookup: {
+                            dataSource(options) {
+                                return {
+                                    store: fcx,
+                                    filter: options.data ? ['MainItemId', '=', options.data.MainItemId] : null,
+                                };
+                            },
+                            valueExpr: 'MasterId',
+                            displayExpr: 'Item',
+                        },
+                        setCellValue: function (rowData, value) {
+                            rowData.MasterId = value;
+                            var v = quotes.find(d => d.MasterId == value);
+                             rowData.Price = v.Price;
+                        },
+                    },
+
+
+                    {
+                        dataField: "Price",
+                        allowEditing: false
+                    },
+                    {
+                        dataField: "Quantity",
+                        caption: 'Qty',
+                        validationRules: [{ type: 'required' }],
+                    },
+                    {
+                        dataField: "Discount",
+                    },
+                    {
+                        dataField: "Payable",
+                        allowEditing: false,
+                        //dataType: "number",
+                        caption: 'Total Amount Payable',
+                        type: "fixedPoint",
+                        precision: 2,
+                        calculateCellValue(rowData) {
+                            if (isPerItem == true) {
+
+                                if (flatValue == true) {
+                                    return rowData.Payable = (rowData.Price - rowData.Discount) * rowData.Quantity;
+                                }
+                                else if (percentageValue == true) {
+                                    var percentageDiscount = (rowData.Price * rowData.Discount / 100);
+                                    return rowData.Payable = (rowData.Price - percentageDiscount) * rowData.Quantity;
+                                }
+                                else {
+                                    return rowData.Payable = rowData.Price * rowData.Quantity;
+                                }
+                            }
+                            else {
+                                return rowData.Payable = rowData.Price * rowData.Quantity;
+                            }
+                        },
+                    }],
+                summary: {
+                    recalculateWhileEditing: true,
+                    totalItems: [{
+                        name: 'toTalLast',
+                        column: 'Payable',
+                        summaryType: 'sum'
+                    }],
+                },  
+            });
+
+            });
+        });
+    }
+
+
+
+    function checkValidations() {
+
+        if (!$('#customEr').val()) {
+            toastr.error('Client is required');
+        }
+    }
+
+
+    function onSubmit() {
+
+        //checkPermissions();
+        var quotdata = termsdata.Master_Detail_Tables;
+        var description = $(".dx-htmleditor-content").html();
+        var reference = $('#ReferenceNo').text();
+        var model = $('#cuStoMerForm').serializeArray();
+        console.log(reference, "reference");
+        /*  termsdata.CompanyId =*/
+        console.log(model, "model");
+        var model = {
+            CompanyId: termsdata.CompanyId,
+            ClientId: model[0].value,
+            Status: model[2].value,
+            Discount: model[12].value,
+            QuotationStatus: model[3].value,
+            ClientReference: reference,
+            EmailStatus: termsdata.EmailStatus,
+            CreatedAt: termsdata.CreatedAt,
+            QuotationId: termsdata.QuotationId,
+            TermsConditions: description,
+            Manager: model[4].value,
+            Admin: model[5].value,
+            Text: model[6].value,
+            IsPerItem: model[7].value,
+            IsFlat: model[8].value,
+            Flat: model[9].value,
+            Percentage: model[10].value,
+            Description: model[11].value,
+            Total: model[13].value,
+            CreatedBy: termsdata.CreatedBy,
+            EmailDate: termsdata.EmailDate
+        }
+
+        console.log(model, 'moDel');
+ 
+        $.get('/Admin/GetFlowStatusByUser?iD=' + termsdata.CreatedBy, function (data) {
+            var perm = data;
+            console.log(perm, "peRm"); 
+             
+            var PermissioN = perm.find(d => d.FlowStatus == model.QuotationStatus);
+            console.log(PermissioN, "PermissioN");
+            var arr = ['Pending'];
+            if (isSuperAdmin.length > 0 && PermissioN) {
+                if (PermissioN.AdminApproval == true && PermissioN.ManagerApproval == true && !arr.includes(model.Manager)) {
+                    
+
+                    $.post('/Quotation/pOSTUpdateQuotation', { model: model, quotdata: quotdata }, function (data) {
+                        if (data) {
+                            toastr.success('Success');
+                            setTimeout(function () {
+                                //window.location.reload();
+                            }, 3000);
+                        }
+                        else {
+                            setTimeout(function () {
+                                toastr.error('Error!');
+                            }, 2000);
+
+                        };
+                    });
+                }
+                else {
+                    $.post('/Quotation/pOSTUpdateQuotation', { model: model, quotdata: quotdata }, function (data) {
+                        if (data) {
+                            toastr.success('Success');
+                            setTimeout(function () {
+                                //window.location.reload();
+                            }, 3000);
+                        }
+                        else {
+                            setTimeout(function () {
+                                toastr.error('Error!');
+                            }, 2000);
+
+                        };
+                    });
+                }
+            } 
+             
+
+            else if (isManager.length > 0 && PermissioN) {
+                if (PermissioN.ManagerApproval == true) {
+                   
+                    $.post('/Quotation/pOSTUpdateQuotation', { model: model, quotdata: quotdata }, function (data) {
+                        if (data) {
+                            toastr.success('Success');
+                            setTimeout(function () {
+                                 window.location.reload();
+                            }, 3000);
+                        }
+                        else {
+                            setTimeout(function () {
+                                toastr.error('Error!');
+                            }, 2000);
+
+                        };
+                    });
+                }
+                else {
+                    $.post('/Quotation/pOSTUpdateQuotation', { model: model, quotdata: quotdata }, function (data) {
+                        if (data) {
+                            toastr.success('Success');
+                            setTimeout(function () {
+                                 window.location.reload();
+                            }, 3000);
+                        }
+                        else {
+                            setTimeout(function () {
+                                toastr.error('Error!');
+                            }, 2000);
+
+                        };
+                    });
+                }
+            }
+           
+
+            else if (isManager.length == 0 && isSuperAdmin.length == 0 && PermissioN || !arr.includes(model.Admin) && !arr.includes(model.Manager)) {
+                 $.post('/Quotation/pOSTUpdateQuotation', { model: model, quotdata: quotdata }, function (data) {
+                    if (data) {
+                        toastr.success('Success');
+                        setTimeout(function () {
+                            window.location.reload();
+                        }, 3000);
+                    }
+                    else {
+                        setTimeout(function () {
+                            toastr.error('Error!');
+                        }, 2000);
+
+                    };
+                });
+            }
+
+            else {
+                toastr.error('Access Denied!');
+            }
+        });
+    }
+</script>
+
+<style>
+
+    .input-disabled_css {
+        background-color: #EBEBE4;
+        border: 1px solid #ABADB3;
+        padding: 2px 1px;
+    }
+
+        .dx-checkbox-icon {
+            border-color: #3d83bf !important;
+        }
+
+        .dx-checkbox.dx-state-readonly .dx-checkbox-icon {
+            border-color: #3d83bf !important;
+            background: #dbdbdb !important;
+        }
+
+    .mt_25 {
+        margin-top: 12px !important;
+        margin-left: 10px;
+    }
+
+        .dx-texteditor.dx-editor-outlined {
+            border: 1px solid #b5b5b5;
+            border-radius: 0px !important;
+            height: 47% !important;
+        }
+
+        table.table-bordered > tbody > tr > td {
+            border: 1px solid black !important;
+        }
+
+        /* .form-control {
+            border: none !important;
+        }*/
+
+        /*    .form-control[readonly] {
+                background: none;
+            }
+    */
+        .blockquote {
+            border: 1px solid #9ea3af !important;
+        }
+</style>
+
+<div class="card">
+    <div class="card-header">
+        <h1 class="">Update Quotation</h1>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-lg-8">
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <p class="mb-0 font-weight-bold" id="CompanyName"></p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        @*<p class="mb-0" id="Address"></p>*@
+                        <address id="Address">  </address>
+                    </div>
+                </div>
+
+
+                <div class="row">
+                    <div class="col-md-3">
+                        <p id="Phone"></p>
+                    </div>
+                    <div class="col-md-3">
+                        <p id="Fax"></p>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <p id="Website"></p>
+                    </div>
+                    <div class="col-md-6">
+                        <p id="Email"></p>
+                    </div>
+                </div>
+
+
+            </div>
+
+
+            <div class="col-lg-4">
+                <table class="table table-bordered">
+                    <tbody>
+                        <tr>
+                            <td> Reference No: </td>
+                            <td id="ReferenceNo" class="font-weight-bold">  </td>
+                        </tr>
+                        <tr>
+                            <td> TRN </td>
+                            <td id="TRN" class="font-weight-bold"> </td>
+                        </tr>
+                        <tr>
+                            <td> Quote Date </td>
+                            <td class="font-weight-bold" id="DatE">  </td>
+                        </tr>
+
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+        <hr class="sidebar-divider d-none d-md-block">
+
+        <form id="cuStoMerForm" class="forms-sample" novalidate="">
+            <div class="row">
+                <div class="col-md-12">
+                    @*<input type="text" readonly id="CreatedBy" name="CreatedBy" />*@
+
+                    <div class="form-row">
+                        <div class="form-group col-md-3">
+                            <label class="col-form-label">Client  <em class="text-danger">*</em></label>
+                            <div id="Clients"></div>
+                        </div>
+
+
+
+                        <div class="form-group col-md-3" id="approvalQuotation">
+                            <label class="col-form-label">Discount Approval </label>
+                            <div id="Status"></div>
+                        </div>
+                        <div class="form-group col-md-3" id="approvalQuotation">
+                            <label class="col-form-label">Quotation Status </label>
+                            <div id="QStatus"></div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-3" id="">
+                            <label class="col-form-label">Manager Approval </label>
+                            <div id="checked"></div>
+                        </div>
+
+                        <div class="form-group col-md-3" id="">
+                            <label class="col-form-label">Admin Approval </label>
+                            <div id="checkedAdmin" class="product-handler"></div>
+                        </div>
+
+                        <div class="form-group col-md-6" id="ReasonBox">
+                            <label class="col-form-label">Reason <em>*</em></label>
+                            <textarea name="Text" id="Text" placeholder="Please describe the reject reason" class="form-control" required></textarea>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-3">
+                            <label for="" class="col-form-label" style="display:inline-block">PerItem Discount</label>
+                            <div id="checkPerItem"></div>
+                        </div>
+
+                        <div class="form-group col-md-3">
+                            <label for="" class="col-form-label" style="display:inline-block"> Flat Discount </label>
+                            <div id="checkFlat"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-3">
+                            <label for="" class="col-form-label" style="display:inline-block">Number(AED) </label>
+                            <div id="discounTFlat"></div>
+                        </div>
+
+                        <div class="form-group col-md-3">
+                            <label for="" class="col-form-label" style="display:inline-block">Percentage(%) </label>
+                            <div id="discounTPercentage"></div>
+                        </div>
+
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label class="col-form-label">Message <em>*</em></label>
+                            <textarea name="Description" id="Description" class="form-control" required></textarea>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div id="gridContainer"></div>
+                </div>
+            </div>
+
+
+            <div class="row">
+                <div class="col-md-9"> </div>
+                <div class="col-md-3">
+                    <label class="col-form-label">Flat Discount Amount(%) </label>
+                    <input type="number" name="Discount" id="Discount" class="form-control">
+                </div>
+            </div>
+            <input type="hidden" id="GrandTotal" name="Total" />
+        </form>
+
+        <hr class="sidebar-divider d-none d-md-block">
+        <div class="row">
+
+            <div class="col-md-6">
+                <blockquote class="blockquote">
+                    <h3 class="text-center">QUOTE CURRENCY: AED</h3>
+                </blockquote>
+
+                <div class="html-editor" id="html-editor"></div>
+                @*<blockquote class="blockquote">
+                    <h4>Terms and Conditions:</h4>
+                    <ul class="list-arrow">
+                        <li id="Remarks">  </li>
+                        <li id="Delivery"></li>
+                        <li id="CMEApproval"></li>
+                        <li id="Payment"></li>
+                        <li id="Validity"></li>
+                    </ul>
+                </blockquote>*@
+            </div>
+
+            <div class="col-lg-6">
+                <table class="table table-bordered">
+                    <tbody>
+                        <tr>
+                            <td> Bank Name: </td>
+                            <td id="BankName" class="font-weight-bold">  </td>
+                        </tr>
+                        <tr>
+                            <td> Company Name: </td>
+                            <td id="BankCompanyName" class="font-weight-bold"> </td>
+                        </tr>
+                        <tr>
+                            <td> Account Number: </td>
+                            <td id="AccountNumber" class="font-weight-bold"> </td>
+                        </tr>
+                        <tr>
+                            <td> IBAN: </td>
+                            <td id="IBAN" class="font-weight-bold"> </td>
+                        </tr>
+
+                        <tr>
+                            <td> SWIFT Code: </td>
+                            <td id="SwiftCode" class="font-weight-bold"> </td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+
+        <hr class="sidebar-divider d-none d-md-block">
+        <div class="row">
+            <div class="col-md-4"></div>
+            <div class="col-md-4">
+                <button type="button" class="btn btn-info" id="btn_update" onclick="onSubmit()">Update</button>
+            </div>
+            <div class="col-md-4"></div>
+        </div>
+
+
+
+    </div>
+</div>
+
+
+
+
+
+<!-- Modal-2 -->
+<div class="modal fade bd-example-modal-lg2" id="exampleModalCenter2" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered  modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Add New Client</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body"> 
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

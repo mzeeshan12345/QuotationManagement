@@ -1,0 +1,599 @@
+﻿
+
+<script>
+    var companies;
+    var clientsdata;
+    var CompanyID;
+    var subclientsdata;
+    var clients;
+    var clieNt;
+    var countriEs;
+    var PagesTRN;
+    var isFile;
+
+    var documnetsor;
+
+
+    $(function () {
+        var getPages = JSON.parse(localStorage.getItem('Pages'));
+        Pages = getPages.find(dx => dx.PageName == "Clients");
+        PagesTRN = getPages.find(dx => dx.PageName == "TRN File");
+         
+
+        CompanyID = localStorage.getItem('CompanyId');
+        getClients(CompanyID);
+        getsubClients(CompanyID);
+
+        $(".SearchDropdown").select2({
+
+            dropdownParent: $("#clientForm")
+        });
+
+        $(".SearchDropdown1").select2({
+
+            dropdownParent: $("#clientUpdateForm")
+        });
+
+    });
+
+    function getClients(CompanyID) {
+        $.get('/Admin/GetAllClients?cmpID=' + CompanyID, function (data) {
+            clientsdata = data;
+            console.log(clientsdata)
+            Clientsgrid(clientsdata);
+        });
+    }
+
+    function Clientsgrid(clientsdata) {
+
+        var test = false;
+        if (Pages && Pages.Create == true) {
+            test = true;
+        }
+
+        isFile = function (position) { 
+            return position == null;
+        };
+
+        //$.get('/Admin/GetAllRegions?comPanYID=' + CompanyID, function (data) {
+        $.get('/Admin/GetRegions', function (data) {
+            regions = data;
+
+
+            $.get('/Admin/GetCountries', function (data) {
+                countriEs = data;
+
+            $("#gridContainer").dxDataGrid({
+                dataSource: clientsdata,
+                 showBorders: true,
+                columnAutoWidth: true,
+                allowColumnResizing: true,
+                columnHidingEnabled: true,
+                hoverStateEnabled: true,
+                paging: {
+                    pageSize: 10
+                },
+                editing: {
+                    mode: 'form',
+                    allowAdding: true, 
+                    useIcons: true
+                },
+                columnsAutoWidth: true,
+                showBorders: true,
+                filterRow: {
+                    visible: true,
+                    applyFilter: "auto"
+                },
+                searchPanel: {
+                    visible: true,
+                    placeholder: "Search..."
+                },
+                export: {
+                    enabled: true,
+                },
+                onExporting: function (e) {
+                    console.log(e, "e");
+                    e.fileName = "Clients List"
+                },
+                headerFilter: {
+                    visible: true
+                },
+                //onEditorPreparing(e) {
+                //    if (e.parentType === 'dataRow' && e.dataField === 'TRNFile') {
+                //        e.editorOptions.readOnly = isFile(e.value);
+                //    }
+                //},
+                columns: [
+                    {
+                        dataField: "ClientName",
+                        validationRules: [{ type: 'required' }],
+                    },
+                    {
+                        dataField: 'RegionId',
+                        caption: 'Region',
+                        validationRules: [{ type: 'required' }],
+                        lookup: {
+                            dataSource: regions,
+                            displayExpr: 'Name',
+                            valueExpr: 'RegionId',
+                        },
+                    },
+                    {
+                        dataField: 'Country',
+                        caption: 'Country',
+                        lookup: {
+                            dataSource: countriEs
+                        },
+                        validationRules: [{ type: 'required' }],
+                    },
+                    {
+                        dataField: "Email",
+                        validationRules: [{ type: 'email', message: 'Email is invalid' }]
+                    },
+                    {
+                        dataField: "RefrenceAlias"
+                    },
+                    {
+                        dataField: "Reference"
+                    },
+                    {
+                        dataField: "Landline"
+                    },
+                    {
+                        dataField: "Address1",
+                        validationRules: [{ type: 'required' }],
+                    },
+                    {
+                        dataField: "Address2"
+                    },
+                    {
+                        dataField: "Address3"
+                    },
+                    {
+                        dataField: "TRN"
+                    }, {
+                        type: "buttons",
+                        buttons: ["edit",
+                            { 
+                                hint: "Edit Detail",
+                                icon: "edit",
+                                visible: function (e) {
+                                    if (Pages && Pages.Update == true) {  return e; }
+                                    else { return e.column.visible = false; }
+                                },
+                                onClick: function (e) {
+
+                                    var iD = e.row.data.ClientId;
+                                    getClientByID(iD);
+
+                                }
+                            },
+                            {
+                                visible: function (e) {
+                                    console.log(!isFile(e.row.data.TRNFile),'f cond');
+                                    if (PagesTRN && PagesTRN.Read == true && !isFile(e.row.data.TRNFile))
+                                    { return e; }
+                                    else
+                                    { return e.column.visible = false; }
+                                },
+
+                                //visible(e) {
+                                //    return !isFile(e.row.data.TRNFile);
+                                //},
+                                hint: "View File",
+                                 icon: "exportpdf",
+                                onClick: function (e) {
+                                    var base = new URL('/', location.href).href;
+                                    console.log(base, 'baSe');
+                                    console.log(base + e.row.data.TRNFile, 'paTh');
+
+                                    window.open(base + e.row.data.TRNFile, '_blank');
+                                },
+                            }],
+                    }],
+
+                toolbar: {
+                    items: [
+                        {
+                            name: 'addRowButton',
+                            showText: 'always',
+                            options: {
+                                text: 'Add New Client',
+                                type: 'default',
+                                icon: 'add',
+                                onClick: function (e) {
+
+                                    $("#createModal").modal();
+                                },
+                                visible: test,
+                            },
+                        },
+
+                    ],
+                },
+                //onToolbarPreparing: function (e) {
+                //    var dataGrid = e.component;
+                //    e.toolbarOptions.items.unshift({
+                //        location: "after",
+                //        widget: "dxButton",
+                //        options: {
+                //            name: 'addRowButton',
+                //            text: 'Add New Client',
+                //            icon: 'add',
+                //            type: 'default',
+                //            onClick: function (e) {
+
+                //                $("#createModal").modal();
+                //            }
+                //        }
+                //    });
+                //},
+                 
+            });
+
+            });
+        });
+    }
+
+
+    function getsubClients(CompanyID) {
+        $.get('/Admin/GetAllSubClients?iD=' + CompanyID, function (data) {
+            subclientsdata = data;
+            console.log(subclientsdata)
+            SubClientsgrid(subclientsdata);
+        });
+    }
+
+
+    function SubClientsgrid(subclientsdata) {
+
+        $.get('/Admin/GetAllClientsList', function (data) {
+            clients = data;
+
+            $("#gridContainer2").dxDataGrid({
+                dataSource: subclientsdata,
+                keyExpr: "SubClientId",
+                showBorders: true,
+                columnAutoWidth: true,
+                allowColumnResizing: true,
+                columnHidingEnabled: true,
+                hoverStateEnabled: true,
+                paging: {
+                    pageSize: 10
+                },
+                editing: {
+                    mode: 'form',
+                    allowAdding: true,
+                    allowUpdating: true,
+                    useIcons: true
+                },
+                showBorders: true,
+                filterRow: {
+                    visible: true,
+                    applyFilter: "auto"
+                },
+                searchPanel: {
+                    visible: true,
+                    placeholder: "Search..."
+                },
+                export: {
+                    enabled: true,
+                },
+                onExporting: function (e) {
+                    console.log(e, "e");
+                    e.fileName = "Clients List"
+                },
+                headerFilter: {
+                    visible: true
+                }, 
+                columns: [
+                    //{
+                    //    dataField: 'CompanyId',
+                    //    caption: 'Company',
+                    //    validationRules: [{ type: 'required' }],
+                    //    lookup: {
+                    //        dataSource: companies,
+                    //        displayExpr: 'CompanyName',
+                    //        valueExpr: 'CompanyId',
+                    //    },
+                    //},
+                    {
+                        dataField: 'ClientId',
+                        caption: 'Client',
+                        validationRules: [{ type: 'required' }],
+                        lookup: {
+                            dataSource: clients,
+                            displayExpr: 'ClientName',
+                            valueExpr: 'ClientId',
+                        },
+                    },
+                    {
+                        dataField: "ClientName",
+                        validationRules: [{ type: 'required' }],
+                    },
+                    {
+                        dataField: "Email",
+                        validationRules: [{ type: 'email', message: 'Email is invalid' }]
+                    },
+                    //{
+                    //    dataField: "Reference"
+                    //},
+                    {
+                        dataField: "Phone"
+                    },
+                    {
+                        dataField: "Landline"
+                    },
+                    {
+                        dataField: "Whatsapp"
+                    },
+                    {
+                        dataField: "CreatedAt",
+                        visible: false,
+                        allowEditing: false
+                    }],
+
+                toolbar: {
+                    items: [
+                        {
+                            name: 'addRowButton',
+                            showText: 'always',
+                            options: {
+                                text: 'Add New Sub-Client',
+                                type: 'default',
+                            },
+                        },
+
+                    ],
+                },
+
+                onRowInserted: function (e) {
+                    var model = e.data;
+                    model.CompanyId = CompanyID;
+                    $.post('/Admin/AddSubClient', { model, model }, function (data) {
+                        console.log(data);
+                        if (data) {
+                            toastr.success('Add Successfully');
+                            getsubClients();
+                        }
+                    });
+                },
+                onRowUpdated: function (e) {
+                    var model = e.data;
+                    console.log(model, "modEl");
+                    $.post('/Admin/UpdateSubClient', { model, model }, function (data) {
+                        console.log(data);
+                        if (data) {
+                            toastr.success('Update Successfully');
+                            getsubClients();
+
+                        }
+                    });
+                },
+            });
+        });
+
+    }
+
+      function AddClienT() {
+           var d = document.getElementById('clientForm');
+         //if (d.checkValidity()) {
+           var formdata = new FormData($('#clientForm')[0]);
+           formdata.append('f', documnetsor);
+           formdata.append('CompanyId', CompanyID);
+
+                 $.ajax({
+                     type: 'POST',
+                     url: '@Url.Action("AddClientNew", "Admin")',
+                     data: formdata,
+                     processData: false,
+                     contentType: false,
+                     success: function (data) {
+                          toastr.success('Client Detail Saved');
+                         setTimeout(function () {
+                             window.location.reload();
+                         }.bind(this), 4000);
+                     }
+                 });
+       // }
+         //checkValidations();
+    }
+
+
+    function getClientByID(iD) {
+
+        $.get('/Admin/GetClient?id=' + iD, function (data) {
+            clieNt = data;
+            console.log(clieNt, 'clienTT');
+
+            $('#ClientId').val(clieNt.ClientId);
+            $('#ClientName1').val(clieNt.ClientName);
+            $('#Email1').val(clieNt.Email);
+            $('#Landline1').val(clieNt.Landline);
+            $('#ContactPerson1').val(clieNt.ContactPerson);
+            $('#UAddress1').val(clieNt.Address1);
+            $('#UAddress2').val(clieNt.Address2);
+            $('#UAddress3').val(clieNt.Address3);
+            $('#CompanyId').val(clieNt.CompanyId);
+            $('#Reference1').val(clieNt.Reference);
+            $('#RefrenceAlias1').val(clieNt.RefrenceAlias);
+            $('#TRN1').val(clieNt.TRN);
+             $('#CreatedBy').val(clieNt.CreatedBy);
+
+            $.get('/Admin/GetAllRegionList', function (daTa) {
+            console.log(clieNt.RegionId, 'RegioNID');
+
+                $('#products-data-source').dxSelectBox({
+                    dataSource: new DevExpress.data.ArrayStore({
+                        data: daTa,
+                        key: 'RegionId',
+                    }),
+                    elementAttr: { class: "dxSelect_Box" },
+                    displayExpr: 'Name',
+                    name: 'RegionId',
+                    valueExpr: 'RegionId',
+                    value: clieNt.RegionId,
+                });
+
+            });
+
+
+            $.get('/Admin/GetCountriesName', function (data) {
+                countriEs = data;
+
+                $('#country').dxSelectBox({
+                    items: countriEs,
+                    name: "Country",
+                    value: clieNt.Country,
+                    elementAttr: { class: "dxSelect_Box" },
+                    searchEnabled: true,
+                    showClearButton: true
+                });
+
+            });
+
+
+
+        });
+
+        $("#updateModal").modal();
+    }
+
+</script>
+
+<style>
+    .select2-container {
+        width : 100% !important;
+    }
+    .tab_head_back {
+        background: #00000008 !important;
+    }
+
+    .select2-container .select2-selection--single {
+        height: 47px !important;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 40px !important;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 40px !important;
+    }
+
+    .dxSelect_Box {
+        height: 47% !important;
+        border: 1px solid #b5b5b5 !important;
+    }
+</style>
+ 
+<ul class="nav nav-tabs tab_head_back" id="myTab" role="tablist">
+    <li class="nav-item">
+        <a class="nav-link active" id="clients-tab" data-toggle="tab" href="#clients" role="tab" aria-controls="clients" aria-selected="true">Clients</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" id="subclients-tab" data-toggle="tab" href="#subclients" role="tab" aria-controls="subclients" aria-selected="false">Sub Clients</a>
+    </li>
+</ul>
+
+<div class="tab-content" id="myTabContent">
+    <div class="tab-pane fade show active" id="clients" role="tabpanel" aria-labelledby="clients-tab">
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title"> Clients</h4>  
+
+                        <div class="row">
+                            <div class="col-md-12"> 
+                                <div id="gridContainer"></div>
+                            </div>
+                        </div>
+
+                        @*<div id="gridContainer"></div>*@
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="tab-pane fade" id="subclients" role="tabpanel" aria-labelledby="subclients-tab">
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title"> Sub-Clients</h4>
+
+                        <div id="gridContainer2"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Create Client Modal -->
+
+<div class="modal fade bd-example-modal-lg" id="createModal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Add New Client</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+
+                                <partial name="_AddNewClient" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-info mr-2" id="btnSubmit" onclick="AddClienT()">Save</button>
+                <button type="button" class="btn btn-dark btn-fw" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Update Client Modal -->
+
+<div class="modal fade bd-example-modal-lg" id="updateModal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Update Client</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+
+                                <partial name="_UpdateClient" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-info mr-2" id="btnUpdate" onclick="UpdateClient()">Update</button>
+                <button type="button" class="btn btn-dark btn-fw" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+
+    </div>
+</div>

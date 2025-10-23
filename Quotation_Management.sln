@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.32002.261
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Quotation_Management", "Quotation_Management\Quotation_Management.csproj", "{EF27D80E-74F2-428B-887E-2980908B663E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkerService1", "WorkerService1\WorkerService1.csproj", "{B7AC3A8D-7943-49DB-91F5-C079A1B2FD54}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EF27D80E-74F2-428B-887E-2980908B663E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF27D80E-74F2-428B-887E-2980908B663E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF27D80E-74F2-428B-887E-2980908B663E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF27D80E-74F2-428B-887E-2980908B663E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B7AC3A8D-7943-49DB-91F5-C079A1B2FD54}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7AC3A8D-7943-49DB-91F5-C079A1B2FD54}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7AC3A8D-7943-49DB-91F5-C079A1B2FD54}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7AC3A8D-7943-49DB-91F5-C079A1B2FD54}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C033300E-0268-49F5-B6E8-EE9583F920E8}
+	EndGlobalSection
+EndGlobal

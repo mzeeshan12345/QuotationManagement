@@ -1,0 +1,143 @@
+﻿@{
+    ViewData["Title"] = "Regions";
+}
+
+<script>
+    var regions = [];
+    var CompanyID = 0;
+    var Pages;
+
+
+    $(function () {
+        CompanyID = localStorage.getItem('CompanyId');
+        Getregions(CompanyID);
+        var getPages = JSON.parse(localStorage.getItem('Pages'));
+        Pages = getPages.find(dx => dx.PageName == "Regions"); 
+    });
+
+    function Getregions(CompanyID) {
+        CompanyID = localStorage.getItem('CompanyId');
+         @*$.get('@Url.Action("GetRegions", "Admin")', function (data) {*@
+             console.log(CompanyID,'CompanyID');
+        $.get('@Url.Action("GetAllRegions", "Admin")?comPanYID=' + CompanyID, function (data) {
+            regions = data;
+            console.log(regions, "regions");
+            regionsgrid(regions);
+
+        });
+    }
+
+
+    function regionsgrid(regions) {
+        var test = false;
+        if (Pages.Create == true) {
+            test = true;
+        }
+
+        $("#gridContainer").dxDataGrid({
+            dataSource: regions,
+            keyExpr: "RegionId",
+            showBorders: true,
+            columnAutoWidth: true,
+            allowColumnResizing: true,
+            columnHidingEnabled: true,
+            paging: {
+                pageSize: 5
+            },
+            editing: {
+                mode: 'cell',
+                allowAdding: true,
+                allowUpdating(e) {
+                    if (Pages.Update == true) {
+                        return e;
+                    }
+                },
+                allowDeleting: false,
+                useIcons: true
+            },
+            columnsAutoWidth: true,
+            showBorders: true,
+            filterRow: {
+                visible: true,
+                applyFilter: "auto"
+            },
+            searchPanel: {
+                visible: true,
+                placeholder: "Search..."
+            },
+            export: {
+                enabled: true,
+            },
+            onExporting: function (e) {
+                console.log(e, "e");
+                e.fileName = "Regions List"
+            },
+            headerFilter: {
+                visible: true
+            },
+            columns: [
+                //{
+                //    dataField: "Id",
+                //    allowEditing: false
+                //},
+                {
+                    dataField: "Name",
+                    caption: "Region",
+                }],
+
+            toolbar: {
+                items: [
+                    {
+                        name: 'addRowButton',
+                        showText: 'always',
+                        options: {
+                            text: 'Add New Region',
+                            type: 'default',
+                            visible: test,
+                        },
+                    },
+
+                ],
+            },
+            onRowInserted: function (e) {
+                console.log(e.data.Name, "Name");
+                var model = e.data;
+                model.CompanyId = CompanyID;
+                $.post('/Admin/CreateRegions', { model, model }, function (data) {
+                    console.log(data);
+                    if (data) {
+                        toastr.success('Add Successfully');
+                    }
+                });
+            },
+            onRowUpdated: function (e) {
+                var model = e.data;
+                $.post('/Admin/UpdateRegions', { model, model }, function (data) {
+                    console.log(data);
+                    if (data) {
+                        toastr.success('Update Successfully');
+                    }
+                });
+            },
+
+        });
+    }
+
+</script>
+<div class="card shadow mb-4">
+
+    <!-- Card Header - Accordion -->
+    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary">Regions</h6>
+    </div>
+
+    <!--<!-- Card Content - Collapse -->
+    <div class="collapse show" id="collapseCardExample" style="">
+        <div class="card-body">
+
+            <div id="gridContainer"></div>
+
+        </div>
+    </div>
+
+</div>

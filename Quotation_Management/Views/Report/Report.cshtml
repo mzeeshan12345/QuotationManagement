@@ -1,0 +1,33 @@
+﻿
+<script>
+
+
+    document.onload = $(function () {
+        var url_string = window.location.href
+        var url = new URL(url_string);
+        var id = url.searchParams.get("Id");
+        var type = url.searchParams.get("cID");
+        console.log(id);
+        console.log(type);
+        $.get('/Report/ViewReport?Id=' + id + '&cId=' + type, function (data) {
+            $('#repotdata').html(data);
+        });
+    });
+</script>
+<style>
+    .dxrd-image-fullscreen, .dxrd-toolbar-item-separator, .dxrd-image-print-page,
+    .dxrd-image-search, .dxrd-preview-export-toolbar-item, .dxrd-toolbar-item-zoom {
+        display: none !important;
+    }
+</style>
+
+<div class="row">
+
+    <div class="col-md-12 col-sm-12 col-xs-12"> 
+            <div id="repotdata">
+
+            </div> 
+    </div>
+
+</div>
+ 

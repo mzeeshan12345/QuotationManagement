@@ -1,0 +1,116 @@
+﻿ 
+<script>
+  
+
+
+
+    function uploadFiles(event) {
+        documnetsor = event.target.files[0];
+        console.log(documnetsor, "documnetsor");
+    }
+
+    function UpdateClient() {
+        var d = document.getElementById('clientUpdateForm');
+         //if (d.checkValidity()) {
+        var formdata = new FormData($('#clientUpdateForm')[0]); 
+        formdata.append('CreatedAt', clieNt.CreatedAt);
+        formdata.append('CreatedBy', clieNt.CreatedBy);
+        formdata.append('CompanyId', clieNt.CompanyId);
+            formdata.append('f', documnetsor);
+
+                 $.ajax({
+                     url: '@Url.Action("UpdateClientDetail", "Admin")',
+                     type: 'POST',
+                     data: formdata,
+                     dataType: 'json',
+                     processData: false,
+                     contentType: false,
+                     success: function (data) {
+                          toastr.success('Client Detail Updated');
+                         setTimeout(function () {
+                             $("#updateModal").html('');
+                             $("#updateModal").hide();
+                             window.location.reload();
+                         }.bind(this), 4000);
+
+                     }
+                 });
+       // }
+         //checkValidations();
+    }
+
+</script>
+
+
+<form id="clientUpdateForm" class="forms-sample" novalidate="">
+    <input type="hidden" class="form-control" id="ClientId" name="ClientId">
+    <div class="form-row">
+
+        <div class="form-group col-md-3">
+            <label for="" class="col-form-label" style="display:inline-block">Client Name <em class="text-danger">*</em></label>
+            <input type="text" name="ClientName" id="ClientName1" class="form-control">
+        </div>
+
+        <div class="form-group col-md-3">
+            <label for="" class="col-form-label" style="display:inline-block">Country <em class="text-danger">*</em></label>
+            <div id="country"></div>
+        </div>
+        <div class="form-group col-md-3">
+            <label for="" class="col-form-label" style="display:inline-block">Region <em class="text-danger">*</em></label>
+            <div id="products-data-source"></div>
+        </div>
+        <div class="form-group col-md-3">
+            <label for="Client" class="col-form-label" style="display:inline-block">Email</label>
+            <input type="text" name="Email" id="Email1" class="form-control">
+        </div>
+    </div>
+
+
+    <div class="form-row"> 
+        <div class="form-group col-md-3">
+            <label for="Client" class="col-form-label" style="display:inline-block">Landline </label>
+            <input type="text" name="Landline" id="Landline1" class="form-control">
+        </div>
+        <div class="form-group col-md-3">
+            <label for="Client" class="col-form-label" style="display:inline-block">Contact Person </label>
+            <input type="text" name="ContactPerson" id="ContactPerson1" class="form-control">
+        </div>
+        <div class="form-group col-md-3">
+            <label for="RefrenceAlias" class="col-form-label" style="display:inline-block">RefrenceAlias </label>
+            <input type="text" name="RefrenceAlias" readonly id="RefrenceAlias1" class="form-control">
+        </div>
+        <div class="form-group col-md-3">
+            <label for="Reference" class="col-form-label" style="display:inline-block">Reference </label>
+            <input type="text" name="Reference" id="Reference1" readonly class="form-control">
+         </div>
+    </div>
+    
+    
+    <div class="form-row">  
+        <div class="form-group col-md-3">
+            <label for="TRN" class="col-form-label" style="display:inline-block">TRN </label>
+            <input type="text" name="TRN" id="TRN1" class="form-control">
+        </div>
+        <div class="form-group col-md-3">
+            <label for="TRN" class="col-form-label" style="display:inline-block">TRN File </label>
+            <input type="file" name="TRNFile" id="TRNFile1" onchange="uploadFiles(event)" class="form-control">
+        </div>
+    </div>
+
+
+    <div class="form-row">
+        <div class="form-group col-md-3">
+            <label for="" class="col-form-label" style="display:inline-block">Address 01 <em class="text-danger">*</em></label>
+            <input type="text" name="Address1" id="UAddress1" class="form-control">
+        </div>
+        <div class="form-group col-md-3">
+            <label for="" class="col-form-label" style="display:inline-block">Address 02  </label>
+            <input type="text" name="Address2" id="UAddress2" class="form-control">
+        </div>
+        <div class="form-group col-md-3">
+            <label for="" class="col-form-label" style="display:inline-block">Address 03  </label>
+            <input type="text" name="Address3" id="UAddress3" class="form-control">
+        </div>
+    </div>
+    <hr class="sidebar-divider d-none d-md-block"> 
+</form>

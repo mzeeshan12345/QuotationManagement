@@ -1,0 +1,3 @@
+﻿@using Quotation_Management
+@using Quotation_Management.Models
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers

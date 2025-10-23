@@ -1,0 +1,175 @@
+﻿
+@{
+    ViewData["Title"] = "Sub Clients";
+}
+
+<script>
+    var companies;
+    var subclientsdata;
+    var clients;
+    var CompanyID;
+
+    $(function () {
+        var getPages = JSON.parse(localStorage.getItem('Pages'));
+        Pages = getPages.find(dx => dx.PageName == "Sub Clients");
+
+        CompanyID = localStorage.getItem('CompanyId');
+        console.log(CompanyID, "cmpId");
+        getsubClients(CompanyID);
+    });
+
+    function getsubClients(CompanyID) {
+        $.get('/Admin/GetAllSubClients?iD=' + CompanyID, function (data) {
+            subclientsdata = data;
+            console.log(subclientsdata)
+            SubClientsgrid(subclientsdata);
+        });
+    }
+
+
+    function SubClientsgrid(subclientsdata) {
+        $.get('/Company/GetActiveCompanies', function (data) {
+            companies = data;
+
+            $.get('/Admin/GetAllClients', function (data) {
+                clients = data;
+
+            $("#gridContainer").dxDataGrid({
+                dataSource: subclientsdata,
+                keyExpr: "SubClientId",
+                showBorders: true,
+                columnAutoWidth: true,
+                allowColumnResizing: true,
+                columnHidingEnabled: true,
+                hoverStateEnabled: true,
+                paging: {
+                    pageSize: 10
+                },
+                editing: {
+                    mode: 'cell',
+                    allowAdding: true,
+                    allowUpdating: true,
+                    useIcons: true
+                },
+                columnsAutoWidth: true,
+                showBorders: true,
+                filterRow: {
+                    visible: true,
+                    applyFilter: "auto"
+                },
+                searchPanel: {
+                    visible: true,
+                    placeholder: "Search..."
+                },
+                export: {
+                    enabled: true,
+                },
+                onExporting: function (e) {
+                    console.log(e, "e");
+                    e.fileName = "Clients List"
+                },
+                headerFilter: {
+                    visible: true
+                },
+                columns: [ 
+                    //{
+                    //    dataField: 'CompanyId',
+                    //    caption: 'Company',
+                    //    validationRules: [{ type: 'required' }],
+                    //    lookup: {
+                    //        dataSource: companies,
+                    //        displayExpr: 'CompanyName',
+                    //        valueExpr: 'CompanyId',
+                    //    },
+                    //},
+                    {
+                        dataField: 'ClientId',
+                        caption: 'Client',
+                        validationRules: [{ type: 'required' }],
+                        lookup: {
+                            dataSource: clients,
+                            displayExpr: 'ClientName',
+                            valueExpr: 'ClientId',
+                        },
+                    },
+                    {
+                        dataField: "ClientName",
+                        validationRules: [{ type: 'required' }],
+                    },
+                    {
+                        dataField: "CreatedAt",
+                        visible: false
+                     },
+                    {
+                        dataField: "Email",
+                        validationRules: [{ type: 'required', message: 'Email is required' },
+                        { type: 'email', message: 'Email is invalid' }]
+                    },  {
+                        dataField: "Reference"
+                      },
+                    {
+                        dataField: "Phone"
+                    },
+                    {
+                        dataField: "Landline"
+                    },
+                    {
+                        dataField: "Whatsapp"
+                    }],
+
+                toolbar: {
+                    items: [
+                        {
+                            name: 'addRowButton',
+                            showText: 'always',
+                            options: {
+                                text: 'Add New Sub-Client',
+                                type: 'default',
+                            },
+                        },
+
+                    ],
+                },
+
+                onRowInserted: function (e) {
+                    var model = e.data;
+                    model.CompanyId = CompanyID;
+                    $.post('/Admin/AddSubClient', { model, model }, function (data) {
+                        console.log(data);
+                        if (data) {
+                            toastr.success('Add Successfully');
+                            getsubClients();
+                        }
+                    });
+                },
+                onRowUpdated: function (e) {
+                    var model = e.data;
+                    console.log(model, "modEl");
+                    $.post('/Admin/UpdateSubClient', { model, model }, function (data) {
+                        console.log(data);
+                        if (data) {
+                            toastr.success('Update Successfully');
+                            getsubClients();
+
+                        }
+                    });
+                },
+            });
+        });
+      });
+ }
+</script>
+
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title"> Sub-Clients</h4>
+
+                <div id="gridContainer"></div>
+            </div>
+        </div>
+    </div>
+</div>
+

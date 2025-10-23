@@ -1,0 +1,37 @@
+﻿@{
+    ViewData["Title"] = "Dashboard";
+    var userList = (IEnumerable<SelectListItem>)ViewData["UsersData"];
+
+}
+
+<script>
+
+
+    $(function () {
+        getQuotes();
+    });
+
+
+
+        function getQuotes() {
+
+                //****Get Current User with roles*****
+        $.get('@Url.Action("CurrentUserList", "Admin")', function (data) {
+            var roles = data;
+            console.log(roles.result, "result roLes");
+
+            var dxdx = roles.result.filter(r => r.RoleName == 'SuperAdmin');
+            console.log(dxdx.length, "dxsdx");
+            if (dxdx.length > 0) {
+                $('#AREA_PARTIAL_VIEW').load('@Url.Action("_DashboardAdmin","Home")');
+            }
+            else {
+               $('#AREA_PARTIAL_VIEW').load('@Url.Action("_DashboardSales", "Home")');
+            }
+        });
+    }
+
+</script>
+
+<div id="AREA_PARTIAL_VIEW">
+</div>

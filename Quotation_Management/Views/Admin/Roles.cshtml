@@ -1,0 +1,143 @@
+﻿@{
+    ViewData["Title"] = "Roles";
+ }
+
+<script>
+    var roles = [];
+    var CompanyID = 0;
+    var Pages;
+
+
+    $(function () {
+        CompanyID = localStorage.getItem('CompanyId');
+        GetRoles(CompanyID);
+
+        var getPages = JSON.parse(localStorage.getItem('Pages'));
+        Pages = getPages.find(dx => dx.PageName == "Roles"); 
+    });
+
+    function GetRoles(CompanyID) {
+        $.get('@Url.Action("GetRoles", "Admin")?compID=' + CompanyID, function (data) {
+            roles = data;
+            console.log(roles, "RolEs");
+            Rolesgrid(roles);
+
+        });
+    }
+
+
+    function Rolesgrid(roles) {
+        var test = false;
+        if (Pages.Create == true) {
+            test = true;
+        }
+         
+      $("#gridContainer").dxDataGrid({
+            dataSource: roles,
+            keyExpr: "Id",
+            showBorders: true,
+            columnAutoWidth: true,
+            allowColumnResizing: true,
+            columnHidingEnabled: true,
+            paging: {
+                pageSize: 10
+            },
+            editing: {
+                mode: 'cell',
+                allowAdding: true,
+                allowUpdating(e) {
+                    if (Pages.Update == true) {
+                        return e;
+                    }
+                }, 
+                useIcons: true
+            },
+            columnsAutoWidth: true,
+            showBorders: true,
+            filterRow: {
+                visible: true,
+                applyFilter: "auto"
+            },
+            searchPanel: {
+                visible: true,
+                placeholder: "Search..."
+            },
+            export: {
+                enabled: true,
+            },
+            onExporting: function (e) {
+                console.log(e, "e");
+                e.fileName = "Roles List"
+            },
+            headerFilter: {
+                visible: true
+            },
+            columns: [
+                //{
+                //    dataField: "Id",
+                //    allowEditing: false
+                //},
+                {
+                    dataField: "Name",
+                    caption: "Role Name",
+                }],
+        
+            toolbar: {
+                items: [
+                    {
+                        name: 'addRowButton',
+                        showText: 'always', 
+                        options: {
+                            text: 'Add New Role',
+                            type: 'default',
+                            visible : test,
+                        }, 
+                    },
+
+                ],
+            },
+
+
+            onRowInserted: function (e) { 
+                console.log(e.data.Name, "Name");
+                var role = e.data;
+                role.CompanyId = CompanyID; 
+                $.post('/Admin/CreateRole', { role, role }, function (data) {
+                    console.log(data);
+                    if (data) {
+                        toastr.success('Add Successfully');
+                    }
+                });
+            },
+            onRowUpdated: function (e) { 
+                var model = e.data;
+                $.post('/Admin/UpdateAspRole', { model, model }, function (data) {
+                    console.log(data);
+                    if (data) {
+                        toastr.success('Update Successfully');
+                    }
+                });
+            },
+
+        });
+    }
+
+</script>
+<div class="card shadow mb-4">
+     
+        <!-- Card Header - Accordion -->
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">Roles</h6> 
+        </div>
+
+        <!--<!-- Card Content - Collapse -->
+        <div class="collapse show" id="collapseCardExample" style="">
+            <div class="card-body">
+
+                <div id="gridContainer"></div> 
+
+            </div>
+        </div>  
+   
+</div>
+ 

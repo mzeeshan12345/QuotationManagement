@@ -1,0 +1,313 @@
+﻿
+<script>
+    var comp;
+
+    var authPages;
+    var roles;
+    var menu;
+
+    $(function () {
+        var url_string = top.location.href
+        var url = new URL(url_string);
+        CId = url.searchParams.get('id');
+        getcompanyDetails(CId);
+        GetPagesByRole();
+        localStorage.setItem('CompanyId', CId);
+        localStorage.getItem('CompanyId');
+    });
+
+
+    function getcompanyDetails(CId) {
+        $.get('/Company/GetCompany?cmpID=' + CId, function (data) {
+            console.log(data, "Company data")
+            comp = data;
+
+            $('#CompanyId').html(comp.CompanyId);
+            $('#CompanyName').html(comp.CompanyName);
+            $('#ReferenceNo').html(comp.ReferenceNo);
+            $('#TRN').html(comp.TRN);
+            $('#Email').html(comp.Email);
+            $('#Address').html(comp.Address);
+            $('#Phone').html(comp.Phone);
+            $('#Fax').html(comp.Fax);
+            $('#Website').html(comp.Website);
+            $('#Footer').html(comp.Footer);
+            $('#BankName').html(comp.BankName);
+            $('#AccountNumber').html(comp.AccountNumber);
+            $('#IBAN').html(comp.IBAN);
+            $('#SwiftCode').html(comp.SwiftCode);
+            $('#CreatedAt').html(comp.CreatedAt);
+            $(".dx-htmleditor-content").html(comp.TermsCondition);
+
+
+        });
+    }
+
+    function GetPagesByRole() {
+
+                //****Get Current User with roles*****
+         $.get('@Url.Action("CurrentUserList", "Admin")', function (data) {
+             roles = data;
+               console.log(roles.result, "result roLes");
+
+             // **** Get All Assigned Pages By Role ***
+            $.post('@Url.Action("GetPagePermission", "Admin")', { role: roles.result }, function (data) {
+                menu = data;
+
+                // **** Prevent duplicates ***
+                authPages = menu.reduce((unique, o) => {
+                     if (!unique.some(obj => obj.PageName === o.PageName)) {
+                         unique.push(o);
+                     }
+                     return unique;
+                }, []);
+
+                console.log(authPages, "AythPages before");
+               // myfunction(authPages);
+
+                var result = "";
+                var result1 = "";
+
+                // **** select without Edit Screens ****
+                authPages = authPages.filter(function (el) { return !el.PageName.includes("Update") && !el.PageName.includes("Registration") && !el.PageName.includes("TRN File") && !el.PageName.includes("SubItem Region") && !el.PageName.includes("Item Region")&& !el.PageName.includes("Add") && !el.PageName.includes("View Report") && !el.PageType.includes("Method") && !el.PageType.includes("Flow") && !el.PageType.includes("View") && !el.PageName.includes("History")&& !el.PageName.includes("Panel"); });
+                //authPages = authPages.filter(function (el) { return !el.PageName.includes("Update") || !el.PageName.includes("Add"); });
+
+                // **** select only user pages with dropdown selection from MenuList ****
+                var roleSubMenu = authPages.filter(n => n.PageType == "User");
+
+                // **** select only quotation pages with dropdown selection from MenuList ****
+                var qouoteSubMenu = authPages.filter(n => n.PageType == "QuotationItem");
+
+                  // *** Stop duplicates in child and parent navbar items ***
+                authPages = authPages.filter(item => !roleSubMenu.includes(item) && !qouoteSubMenu.includes(item));
+
+                console.log(authPages, "pagEs");
+                  // *** Simple navbar selection ****
+                 for (var p = 0; p < authPages.length; p++) {
+
+                     if (authPages.length > 0) {
+                          //result += '<li class="nav-item"> <a class="nav-link1" href="' + authPages[p].PageUrl + '"><span class="menu-title">' + authPages[p].PageName + '</span> <i class="mdi ' + authPages[p].Icon + ' menu-icon"></i></a></li>';
+                         result += ' <div class="col-lg-4 col-md-6 margin-30px-bottom xs-margin-20px-bottom" > <div class="services-block-three"><a href="' + authPages[p].PageUrl + '"> <div><i class="fa fa-eercast"></i>  </div> <h4> <i class="mdi ' + authPages[p].Icon + ' menu-icon"></i> ' + authPages[p].PageName + '</h4> </a> </div></div>';
+                         //result += ' <div class="col-lg-4 col-md-6 margin-30px-bottom xs-margin-20px-bottom" > <div class="services-block-three"><a href="' + authPages[p].PageUrl + '"> <div class="padding-15px-bottom"><i class="fa fa-eercast"></i>  </div> <h4> <i class="mdi ' + authPages[p].Icon + ' menu-icon"></i> ' + authPages[p].PageName + '</h4> </a> </div></div>';
+                      }
+                  }
+
+                  if (roleSubMenu.length > 0) {
+                      //result += '<li class="nav-item"><a class="nav-link1" data-toggle="collapse" href="#ui-basic" aria-expanded="false" aria-controls="ui-basic"><span class="menu-title">User Management</span><i class="menu-arrow"></i> <i class="mdi mdi-account-settings menu-icon"></i> </a> <div class="collapse" id="ui-basic"><ul class="nav flex-column sub-menu">  <li class="nav-item"> ';
+
+                      //result1 += '<div class="row"> <div class="col-lg-4 col-md-6 margin-30px-bottom xs-margin-20px-bottom" > <div class="services-block-three"> <a class="" data-toggle="collapse" href="#ui-basic" aria-expanded="false" aria-controls="ui-basic"> <div class="padding-15px-bottom">   <i class="mdi mdi-account-settings menu-icon"></i> </div> User Management  <i class="mdi mdi-arrow-down-bold-circle-outline"></i> <div class="collapse" id="ui-basic"><ul class="nav flex-column sub-menu">  <li class="nav-item">';
+                      result1 += '<div class="row"> <div class="col-lg-4 col-md-6 margin-30px-bottom xs-margin-20px-bottom" > <div class="services-block-three"> <a class="" data-toggle="collapse" href="#ui-basic" aria-expanded="false" aria-controls="ui-basic"> User Management  <i class="mdi mdi-arrow-down-bold-circle-outline"></i> <div class="collapse" id="ui-basic"><ul class="nav flex-column sub-menu">  <li class="nav-item">';
+
+                      for (var i = 0; i < roleSubMenu.length; i++) {
+                          result1 += ' <a class="nav-link1" href="' + roleSubMenu[i].PageUrl + '">  <i class="mdi ' + roleSubMenu[i].Icon + ' menu-icon submenu_ico"></i> ' + roleSubMenu[i].PageName + '  </a>';
+                     }
+                      result1 += '</div></div> </li> </div>  ';
+                       //$('#resUlT').append(result);
+                }
+                if (qouoteSubMenu.length > 0) {
+                      //result += '<li class="nav-item"><a class="nav-link1" data-toggle="collapse" href="#ui-basic1" aria-expanded="false" aria-controls="ui-basic1"><span class="menu-title">Quotation Items</span><i class="menu-arrow"></i> <i class="mdi mdi-file menu-icon"></i> </a> <div class="collapse" id="ui-basic1"><ul class="nav flex-column sub-menu">  <li class="nav-item"> ';
+
+                    result1 += '<div class="col-lg-4 col-md-6 margin-30px-bottom xs-margin-20px-bottom" > <div class="services-block-three"> <a class="" data-toggle="collapse" href="#ui-basic1" aria-expanded="false" aria-controls="ui-basic1">  Quotation Items <i class="mdi mdi-arrow-down-bold-circle-outline"></i> <div class="collapse" id="ui-basic1"><ul class="nav flex-column sub-menu">  <li class="nav-item"> ';
+                    //result1 += '<div class="col-lg-4 col-md-6 margin-30px-bottom xs-margin-20px-bottom" > <div class="services-block-three"> <a class="" data-toggle="collapse" href="#ui-basic1" aria-expanded="false" aria-controls="ui-basic1"> <div class="padding-15px-bottom"> <i class="mdi mdi-file menu-icon"></i> </div> Quotation Items <i class="mdi mdi-arrow-down-bold-circle-outline"></i> <div class="collapse" id="ui-basic1"><ul class="nav flex-column sub-menu">  <li class="nav-item"> ';
+
+                    for (var i = 0; i < qouoteSubMenu.length; i++) {
+                        result1 += ' <a class="nav-link1" href="' + qouoteSubMenu[i].PageUrl + '">  <i class="mdi ' + qouoteSubMenu[i].Icon + ' menu-icon submenu_ico"></i> ' + qouoteSubMenu[i].PageName + '  </a>';
+                     }
+                     //result += '</li></ul></div></li> ';
+                    result1 += '</div></div> </li> </div> </div>';
+                 }
+                $('#resUlT').html(result);
+                $('#resUlT1').html(result1);
+
+
+            });
+
+         });
+    }
+
+
+    function myfunction(authPages) {
+         var count = 0;
+        for (var i = 0; i < authPages.length; i++) {
+            var xdx = window.location.pathname;
+             if (xdx == authPages[i].PageUrl && authPages[i].Read == true) {
+                count++
+                return authPages;
+            }
+
+        }
+         if (count == 0) {
+                 top.location.href = '/Admin/AccessDenied';
+            }
+        }
+</script>
+
+<style>
+
+
+    .nav-link1 {
+        /*display: block!important;*/
+        color: #80736f;
+        padding: 0.5rem 2rem !important;
+    }
+     
+    .services-block-three > a { 
+        color: #6f6f6f !important;
+    }
+    .submenu_ico {
+        margin-left: -1rem !important;
+        padding: 0px 10px 0px 0px;
+        color: #6f6f6f;
+    }
+
+    body {
+        background: #f5f5f5;
+    }
+
+    .services-block-three {
+        margin-bottom : 30px;
+    }
+
+        .services-block-three i {
+            font-size: 32px;
+        }
+
+        .services-block-three > a {
+            display: block;
+            border: 2px solid #d5d5d5;
+            border-radius: 4px;
+            text-align: center;
+            background: #fff;
+            padding: 20px;
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+            .services-block-three > a:before {
+                display: block;
+                content: "";
+                width: 9%;
+                height: 17%;
+                position: absolute;
+                bottom: -2px;
+                right: -2px;
+                border-bottom: 2px solid #03a9f5;
+                border-right: 2px solid #03a9f5;
+                transition: all 0.5s ease 0s;
+                -webkit-transition: all 0.5s ease 0s;
+            }
+
+            .services-block-three > a:after {
+                display: block;
+                content: "";
+                width: 9%;
+                height: 17%;
+                position: absolute;
+                top: -2px;
+                left: -2px;
+                border-top: 2px solid #03a9f5;
+                border-left: 2px solid #03a9f5;
+                transition: all 0.5s ease 0s;
+                -webkit-transition: all 0.5s ease 0s;
+            }
+
+    .padding-15px-bottom {
+        padding-bottom: 15px;
+    }
+
+    .services-block-three h4 {
+        color: #6f6f6f;
+        font-size: 14px;
+        margin-bottom: 10px;
+        font-weight: 600;
+    }
+
+    .services-block-three p {
+        margin-bottom: 0;
+        color: #757575;
+    }
+
+    .services-block-three > a:hover {
+        opacity: 1;
+        border-color: #d5d5d5;
+    }
+
+    a:hover, a:active {
+        color: #03a9f5;
+        text-decoration: none;
+    }
+
+    .services-block-three > a:hover:before, .services-block-three > a:hover:after {
+        width: 95%;
+        height: 90%;
+    }
+</style>
+
+<div class="row">
+    <div class="col-md-12">
+
+        <div class="card">
+            <div class="card-header">
+                <h3 class="" id="CompanyName">Company Detail</h3>
+            </div>
+            <div class="card-body">
+
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <address id="Address"></address>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-8">
+                        <ul class="list-inline">
+                            <li class="list-inline-item" id="Phone"></li>
+                            <li class="list-inline-item" id="Fax"></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-8">
+                        <ul class="list-inline">
+                            <li class="list-inline-item" id="Website"></li>
+                            <li class="list-inline-item" id="Email"></li>
+                        </ul>
+                    </div>
+                </div>
+
+
+
+
+
+
+                <div class="row">
+                    <div class="col-md-12">
+
+                        <section class="pt-5 pb-5"> 
+                            <div class="container">
+                                <div class="row" id="resUlT"> </div>
+                                <div class="" id="resUlT1"> </div> 
+                            </div>
+                        </section>
+
+                        @*<div class="card">
+                    <div class="card-header"> <h3 class="" id="">Menu</h3> </div>
+                    <div class="card-body">
+                        <nav class="sidebar sidebar-offcanvas" id="sidebar">
+                            <ul class="nav" id="resUlT">
+                            </ul>
+                        </nav>
+                    </div>
+                </div>*@
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+
+    </div>
+</div>
+

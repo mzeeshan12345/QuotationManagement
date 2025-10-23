@@ -1,0 +1,383 @@
+﻿
+<script>
+
+    var url = "";
+    var CompanyId = 0;
+  var documnetsor;
+    var bankdata = [];
+
+
+    $(function () {
+        $("#html-editor").dxHtmlEditor({
+            height:250,
+            toolbar: {
+                items: [
+                    "undo", "redo", "separator",
+                    {
+                        formatName: "size",
+                        formatValues: ["8pt", "10pt", "12pt", "14pt", "18pt", "24pt", "36pt"]
+                    },
+                    {
+                        formatName: "font",
+                        formatValues: ["Arial", "Courier New", "Georgia", "Impact", "Lucida Console", "Tahoma", "Times New Roman", "Verdana"]
+                    },
+                    "separator", "bold", "italic", "strike", "underline", "separator",
+                    "alignLeft", "alignCenter", "alignRight", "alignJustify", "separator",
+                    {
+                        formatName: "header",
+                        formatValues: [false, 1, 2, 3, 4, 5]
+                    }, "separator",
+                    "orderedList", "bulletList", "separator",
+                    "color", "background", "separator",
+                    "clear", "codeBlock", "blockquote"
+                ]
+            },
+            mediaResizing: {
+                enabled: true
+            },
+            export: {
+                enabled: true,
+                printingEnabled: false
+            },
+
+        });
+     
+        Bankgrid(bankdata);
+    });
+
+
+    //function getBanks() {
+    //    $.get('/Company/GetBanks', function (data) {
+    //        bankdata = data;
+    //        console.log(bankdata, "bnKs");
+    //        Bankgrid(bankdata);
+    //    });
+    //}
+
+    function AddCompany() {
+        var daTe = new Date();
+        var d = document.getElementById('companyInfo');
+        var description = $(".dx-htmleditor-content").html();
+         if (d.checkValidity() && emailValidation() == true) { 
+        var formdata = new FormData($('#companyInfo')[0]); 
+          formdata.append('TermsCondition', description);
+             formdata.append('f', documnetsor);
+             if (bankdata.length > 0) {
+                 for (var i = 0; i < bankdata.length; i++) {
+                     formdata.append("Banks[" + i + "].BankName", bankdata[i].BankName);
+                     formdata.append("Banks[" + i + "].IBAN", bankdata[i].IBAN);
+                     formdata.append("Banks[" + i + "].AccountNumber", bankdata[i].AccountNumber);
+                     formdata.append("Banks[" + i + "].CompanyId", bankdata[i].CompanyId);
+                     formdata.append("Banks[" + i + "].SwiftCode", bankdata[i].SwiftCode);
+                     formdata.append("Banks[" + i + "].Active", bankdata[i].Active);
+                     formdata.append("Banks[" + i + "].CreatedAt", daTe);
+                 }
+
+                 $.ajax({
+                     type: 'POST',
+                     url: '@Url.Action("AddCompanyDetail", "Company")',
+                     data: formdata,
+                     processData: false,
+                     contentType: false,
+                     success: function (data) {
+                          toastr.success('Comapny Detail Saved');
+                         setTimeout(function () {
+                         window.location.href = "/Home/Panel";
+                         }.bind(this), 4000);
+                     }
+                 });
+
+             }
+             else {
+                 toastr.error('Please provide bank details');
+             }
+        }
+         checkValidations();
+    }
+
+
+    function Bankgrid(bankdata) {
+
+        $("#gridContainer").dxDataGrid({
+            dataSource: bankdata,
+            keyExpr: "BankId",
+                     showBorders: true,
+                    columnAutoWidth: true,
+                    allowColumnResizing: true,
+                    columnHidingEnabled: true,
+                    hoverStateEnabled: true,
+                    editing: {
+                        allowUpdating: true,
+                        allowAdding: true,
+                        mode: 'cell',
+                        useIcons: true
+                    },
+                    columnsAutoWidth: true,
+                    showBorders: true,
+                    searchPanel: {
+                        visible: true,
+                        placeholder: "Search..."
+                    },
+                    headerFilter: {
+                        visible: true
+                    },
+                    columns: [ 
+                        {
+                            dataField: "AccountNumber",
+                            validationRules: [{ type: 'required' }],
+                        },
+                        {
+                            dataField: "BankName",
+                            validationRules: [{ type: 'required' }],
+                        },
+                        {
+                            dataField: "IBAN",
+                            validationRules: [{ type: 'required' }],
+                        },
+                        {
+                            dataField: "SwiftCode",
+                            validationRules: [{ type: 'required' }],
+                        },{
+                            dataField: "Active",
+                            dataType: "boolean",
+                        }],
+                });
+
+    }
+
+    function uploadFiles(event) {
+        documnetsor = event.target.files[0];
+        console.log(documnetsor, "documnetsor");
+    }
+
+    function checkValidations() {
+
+        if (!$('#CompanyName').val()) {
+            toastr.error('Company Name is required');
+        }
+        //if (!$('#ReferenceNo').val()) {
+
+        //    toastr.error('Reference No is required');
+        //}
+
+        if (!$('#TRN').val()) {
+
+            toastr.error('TRN is required');
+        }
+        if (!$('#Email').val()) {
+
+            toastr.error('Email is required');
+        }
+        if (!$('#Address').val()) {
+
+            toastr.error('Address is required');
+        }
+
+        if (!$('#Phone').val()) {
+
+            toastr.error('Phone is required');
+        }
+        if (!$('#Fax').val()) {
+
+            toastr.error('Fax is required');
+        }
+
+        if (!$('#Website').val()) {
+            toastr.error('Website is required');
+        }
+        if (!$('#Footer').val()) {
+            toastr.error('Footer is required');
+        }
+        //if (!$('#BankName').val()) {
+        //    toastr.error('BankName is required');
+        //}
+        //if (!$('#AccountNumber').val()) {
+        //    toastr.error('AccountNumber is required');
+        //}
+        //if (!$('#IBAN').val()) {
+        //    toastr.error('IBAN is required');
+        //}
+        //if (!$('#SwiftCode').val()) {
+        //    toastr.error('SwiftCode is required');
+        //}
+    }
+
+
+    function emailValidation() {
+        value = document.getElementById('Email').value;
+        apos = value.indexOf("@@");
+        dotpos = value.lastIndexOf(".");
+        lastpos = value.length - 1;
+        if (apos < 1 || dotpos - apos < 2 || lastpos - dotpos > 3 || lastpos - dotpos < 2) {
+            //$('#EmailError').html('Invalid Email Address');
+            toastr.error('Invalid Email Address');
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    function validateMobile() {
+
+        reg = /^\+?([0-9]{3})\)?[ . ]?([0-9]{1})[ . ]?([0-9]{3})[ . ]?([0-9]{4})$/;
+        //reg = /^(?:(+971)2|3|4|6|7|9)[0-9]{8}$/;
+
+        if (!reg.test($('#Phone').val())) {
+            toastr.error('Invalid Telephone');
+            return false;
+        }
+        else {
+            return true;
+        }
+    }
+
+    function validateFax() {
+        regFax = /^\+?([0-9]{3})\)?[ . ]?([0-9]{1})[ . ]?([0-9]{3})[ . ]?([0-9]{4})$/;
+        if (!regFax.test($('#Fax').val())) {
+            toastr.error('Invalid Fax');
+            return false;
+        }
+        else {
+            return true;
+        }
+    }
+</script>
+<div class="row">
+
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Company</h4>
+
+
+                <form id="companyInfo" class="forms-sample" novalidate="">
+                    <p class="card-description"> Company info </p>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="FirstName" class="">Company Name <em class="text-danger">*</em></label>
+                            @*<input type="text" class="form-control capital" id="FirstName" name="FirstName" required>*@
+                            <input type="text" class="form-control" id="CompanyName" name="CompanyName" placeholder="Company Name" required>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="LastName" class="">Email <em class="text-danger">*</em></label>
+                            <input type="text" class="form-control" id="Email" name="Email" placeholder="example@domain.com" onchange="emailValidation()" required>
+
+                        </div>
+                    </div>
+
+
+                    <div class="form-row">
+                        @*<div class="form-group col-md-4">
+                            <label for="staticEmail" class="">Reference No <em class="text-danger">*</em></label>
+                            <input type="text" id="ReferenceNo" name="ReferenceNo" placeholder="CR-123456" required class="form-control">
+                        </div>*@
+                        <div class="form-group col-md-4">
+                            <label for="staticGender" class="">TRN <em class="text-danger">*</em></label>
+                            <input type="text" class="form-control" id="TRN" name="TRN" placeholder="1000023456789" required>
+
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="Website" class="">Website <em class="text-danger">*</em></label>
+                            <input type="text" id="Website" name="Website" placeholder="www.companyweb.com" required class="form-control">
+
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-4">
+                            <label for="staticEmail" class="">Tel <em class="text-danger">*</em></label>
+                            <input type="tel" class="form-control" name="Phone" id="Phone" maxlength="12" placeholder="+97141234567" required onchange="validateMobile()">
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="Fax" class="">Fax <em class="text-danger">*</em></label>
+                            <input type="text" id="Fax" name="Fax" placeholder="+97141234567" maxlength="12" required class="form-control" onchange="validateFax()">
+
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="CompanyLogo" class="">Company Logo <em class="text-danger">*</em></label>
+                                <input type="file" id="filePath" onchange="uploadFiles(event)" name="FilePath" required class="form-control">
+                                 @*<label>Company Logo</label>
+        <input type="file" name="FilePath" class="file-upload-default">*@
+                                @*<div class="input-group col-xs-12">
+            <input type="text" class="form-control file-upload-info" disabled="" placeholder="Upload Image">
+            <span class="input-group-append">
+                <button class="file-upload-browse btn btn-gradient-info" type="button">Upload</button>
+            </span>
+        </div>*@
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-12">
+                            <label for="Address" class="">Address <em class="text-danger">*</em></label>
+                            <textarea class="form-control" id="Address" name="Address" placeholder="529 Bosco Views Apt. 867 UAE" required></textarea>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-12">
+                            <label for="Address" class="">Footer <em class="text-danger">*</em></label>
+                            <textarea class="form-control" id="Footer" name="Footer" placeholder="P.O.Box:529, UAE Tower Apt. 867 | Phone:+97112364895 | Fax:+97112364895| Email:info@organisation.com | website: www.abc.com" required></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group col-md-12">
+                            <label for="Address" class="">Terms & Conditions <em class="text-danger">*</em></label>
+                            <div class="html-editor" id="html-editor"></div>
+                        </div>
+                    </div>
+
+
+                    <h3 class="m-0 font-weight-bold text-primary">Company Bank Info</h3> <br />
+                <div id="gridContainer"></div>               
+                    
+    @*<div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Bank Name  <code>*</code></label>
+                                <input type="text" class="form-control" name="BankName" id="BankName" required placeholder="First Bank of UAE">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Account No  <code>*</code></label>
+                                <input type="text" class="form-control" name="AccountNumber" id="AccountNumber" placeholder="98065655789966" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>IBAN  <code>*</code></label>
+                                <input type="text" class="form-control" name="IBAN" id="IBAN" required placeholder="98065655">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Swift Code  <code>*</code></label>
+                                <input type="text" class="form-control" name="SwiftCode" id="SwiftCode" placeholder="01234" required>
+                            </div>
+                        </div>
+
+                    </div>*@
+                    <hr class="sidebar-divider d-none d-md-block">
+                    <div class="row">
+                        <div class="col-md-4"></div>
+                        <div class="col-md-4">
+                            <button type="button" class="btn btn-gradient-info mr-2" id="btnSubmit" onclick="AddCompany()">Save</button>
+                             <button type="reset" class="btn btn-gradient-secondary mr-2">Reset</button>
+                        </div>
+                        <div class="col-md-4"></div>
+                    </div>
+                    <hr class="sidebar-divider d-none d-md-block" style="visibility:hidden;">
+                </form>
+
+            </div>
+        </div>
+    </div>
+    <!-- plugins:js -->
+    <!--<script src="~/Web/assets/vendors/js/vendor.bundle.base.js"></script>-->
+</div>

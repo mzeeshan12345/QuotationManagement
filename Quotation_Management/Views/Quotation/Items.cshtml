@@ -1,0 +1,465 @@
+﻿
+@{
+    ViewData["Title"] = "Items";
+}
+
+<script>
+    var Itemsdata = [];
+    var companies = [];
+    var mainItems = [];
+
+    var regionDetail;
+    var regions;
+    var regions = [];
+    var companiEs = [];
+    var dropDownValue;
+    var regiondropDown;
+    var regionudropDown;
+    var regiondropDownName;
+    var itmData;
+    var Pages;
+    var uregionDetail;
+    var subItemRegions;
+    var CompanyID = 0;
+
+    $(function () {
+
+        var getPages = JSON.parse(localStorage.getItem('Pages'));
+        Pages = getPages.find(dx => dx.PageName == "Sub Items");
+        subItemRegions = getPages.find(dx => dx.PageName == "SubItem Region");
+        if (Pages.Create == true) {
+            $("#btnSubmitCreate").show();
+        }
+        else {
+            $("#btnSubmitCreate").hide();
+        }
+
+        CompanyID = localStorage.getItem('CompanyId');
+        getitems(CompanyID);
+        GetmainItemS();
+        GetRegions();
+        GetCompanies();
+    });
+
+
+    function GetmainItemS() {
+        $.get('@Url.Action("GetMainItems", "Quotation")', function (data) {
+            mainItems = data;
+
+            $('#mainItemDropdown').dxSelectBox({
+                dataSource: new DevExpress.data.ArrayStore({
+                    data: mainItems,
+                    key: 'MainItemId',
+                }), inputAttr: {
+                    id: "mItems",
+                    name: "MainItemId"
+                },
+                elementAttr: {
+                    id: "mItems",
+                    class: "dxSelect_Box"
+                },
+                displayExpr: 'Name',
+                valueExpr: 'MainItemId'
+            });
+
+        });
+    }
+
+    function GetCompanies() {
+          $.get('@Url.Action("GetActiveCompanies", "Company")', function (data) {
+            companiEs = data;
+
+             $('#companyDropdown').dxSelectBox({
+                 dataSource: new DevExpress.data.ArrayStore({
+                     data: companiEs,
+                     key: 'CompanyId',
+                 }), inputAttr: {
+                     id: "compaNiEs",
+                     name: "CompanyId"
+                 },
+                 elementAttr: {
+                        id: "compaNiEs",
+                        class: "dxSelect_Box"
+                 },
+                 displayExpr: 'CompanyName',
+                 valueExpr: 'CompanyId'
+             });
+        });
+    }
+
+
+        function GetRegions() {
+         $.get('@Url.Action("GetRegions", "Admin")', function (data) {
+             regions = data;
+             console.log(regions, "Regions");
+             $('#userRegions').dxTagBox({
+                 searchEnabled: true,
+                 placeholder: 'Choose or type Region',
+                 dataSource: new DevExpress.data.ArrayStore({
+                     data: regions,
+                     key: 'RegionId',
+                 }),
+                 inputAttr: {
+                     id: "regioNs",
+                     name: "MainItemRegions"
+                 },
+                 elementAttr: {
+                     id: "regioNs",
+                     class: "dxTag_Box"
+                 },
+                 displayExpr: 'Name',
+                 valueExpr: 'RegionId',
+                 showSelectionControls: true,
+                 maxDisplayedTags: 3,
+                 onValueChanged(e) {
+                     regiondropDown = e.value;
+                 },
+             });
+        });
+    }
+
+    function getitems(CompanyID) {
+        //$.get('/Quotation/GetItems', function (data) { 
+        $.get('/Quotation/GetItemList?CompanyId=' + CompanyID, function (data) {
+             Itemsdata = data;
+            console.log(Itemsdata)
+            Itemgrid(Itemsdata);
+        });
+    }
+
+    function Itemgrid(Itemsdata) {
+        var test = false;
+        if (subItemRegions && subItemRegions.Create == true) {
+            test = true;
+        }
+
+        $.get('/Company/GetActiveCompanies', function (data) {
+            companies = data;
+
+            $("#gridContainer").dxDataGrid({
+                dataSource: Itemsdata,
+                keyExpr: "MasterId",
+                showBorders: true,
+                columnAutoWidth: true,
+                allowColumnResizing: true,
+                columnHidingEnabled: true,
+                hoverStateEnabled: true,
+                paging: {
+                    pageSize: 10
+                },
+                editing: {
+                    mode: 'row',
+                    allowAdding: false,
+                    allowUpdating(e) {
+                        if (Pages && Pages.Update == true) {
+                            return e;
+                        }
+                    },
+                    useIcons: true
+                },
+                columnsAutoWidth: true,
+                showBorders: true,
+                filterRow: {
+                    visible: true,
+                    applyFilter: "auto"
+                },
+                searchPanel: {
+                    visible: true,
+                    placeholder: "Search..."
+                },
+                export: {
+                    enabled: true,
+                },
+                onExporting: function (e) {
+                    console.log(e, "e");
+                    e.fileName = "Items List"
+                },
+                 headerFilter: {
+                    visible: true
+                },
+                columns: [
+                    {
+                        dataField: "MasterId",
+                        allowEditing: false
+                    },
+                    //{
+                    //    dataField: 'CompanyId',
+                    //    caption: 'Company',
+                    //    validationRules: [{ type: 'required' }],
+                    //    lookup: {
+                    //        dataSource: companies,
+                    //        displayExpr: 'CompanyName',
+                    //        valueExpr: 'CompanyId',
+                    //    },
+                    //},
+
+                    {
+                        dataField: 'MainItemId',
+                        caption: 'Item',
+                        validationRules: [{ type: 'required' }],
+                        lookup: {
+                            dataSource: mainItems,
+                            displayExpr: 'Name',
+                            valueExpr: 'MainItemId',
+                        },
+                    },
+                    {
+                        dataField: "Item", 
+                        validationRules: [{ type: 'required' }],
+                    },
+                    {
+                        dataField: "Price",
+                        validationRules: [{ type: 'required' }],
+                    }],
+                onRowInserted: function (e) {
+                    var model = e.data;
+                    model.CompanyId = CompanyID;
+                    console.log(model, "moDel");
+                    $.post('/Quotation/AddSubItem', { model, model }, function (data) {
+                        console.log(data);
+                        if (data) {
+                            toastr.success('Added New Item Successfully');
+                        }
+                    });
+                },
+                onRowUpdated: function (e) {
+                    var model = e.data;
+                    console.log(model, "moDel");
+                    $.post('/Quotation/UpdateSubItem', { model, model }, function (data) {
+                        console.log(data);
+                        if (data) {
+                            toastr.success('Update Item Successfully');
+                        }
+                    });
+                },
+                onRowRemoved: function (e) {
+                    console.log(e);
+                    var key = e.data.Id;
+                    $.post('/Quotation/DeleteSubItem?key=' + key, function (data) {
+                            toastr.error('Deleted Successfully');
+                    });
+                },
+                masterDetail: {
+                    enabled: true,
+                    template: function (container, options) {
+                        console.log(options);
+                        $.get('/Quotation/GetSubItemRegions?id=' + options.data.MasterId, function (data) {
+                           regionDetail = data;
+                            console.log(regionDetail,"regionDetail");
+
+                            $.get('/Quotation/Getregions', function (data) {
+                            regions = data;
+
+                            $('<div>')
+                            $("<div>")
+                                .dxDataGrid({
+                                    columnAutoWidth: true,
+                                    showBorders: true, 
+                                    headerFilter: {
+                                        visible: true
+                                    },
+                                    editing: {
+                                        mode: "cell",
+                                        allowUpdating(e) {
+                                            if (subItemRegions && subItemRegions.Update == true) {
+                                                return e;
+                                            }
+                                        },
+                                        allowDeleting(e) {
+                                            if (subItemRegions && subItemRegions.Delete == true) {
+                                                return e;
+                                            }
+                                        },
+                                        allowAdding: true,
+                                        useIcons: true
+                                    },
+                                    columns: [
+                                        {
+                                            dataField: 'RegionId',
+                                            caption: 'Region',
+                                            lookup: {
+                                                dataSource: regions,
+                                                displayExpr: 'Name',
+                                                valueExpr: 'RegionId',
+                                            },
+                                        }],
+                                    toolbar: {
+                                        items: [
+                                            {
+                                                name: 'addRowButton',
+                                                showText: 'always',
+                                                options: {
+                                                    text: 'Add New Region',
+                                                    type: 'default',
+                                                    visible: test,
+                                                },
+                                            },
+
+                                        ],
+                                    },
+                                    onRowInserted: function (e) {
+                                        var model = e.data;
+                                        model.MasterId = options.data.MasterId;
+                                        console.log(model, "moDel");
+                                        $.post('/Quotation/AddSubRegion', { model, model }, function (data) {
+                                            console.log(data);
+                                            if (data) {
+                                                toastr.success('Added New Region Successfully');
+                                            }
+                                        });
+                                    },
+                                    onRowUpdated: function (e) {
+                                        var model = e.data;
+                                        console.log(model, "moDel");
+                                        $.post('/Quotation/UpdateSubRegion', { model, model }, function (data) {
+                                            console.log(data);
+                                            if (data) {
+                                                toastr.success('Update Region Successfully');
+                                            }
+                                        });
+                                    },
+                                    onRowRemoved: function (e) {
+                                        console.log(e);
+                                        var key = e.data.MasterId;
+                                        $.post('/Quotation/DeleteSubRegion?key=' + key, function (data) {
+                                            if (data) {
+                                                toastr.error('Deleted Region Successfully');
+                                            }
+                                        });
+                                    },
+                                    dataSource: new DevExpress.data.DataSource({
+                                        store: new DevExpress.data.ArrayStore({
+                                            data: regionDetail
+                                        }),
+                                    })
+                                }).appendTo(container);
+                        });
+                    });
+                }
+                },
+                 
+
+            }).dxDataGrid("instance");
+
+            $('.dx-datagrid-search-panel').removeClass('dx-state-disabled');
+            $('div.dx-texteditor-input-container > input.dx-texteditor-input');
+        });
+    }
+     
+
+    function onSubmit() {
+       // var d = document.getElementById('mainItemForm');
+        //if (d.checkValidity() && emailValidation() == true && validateMobile() == true) {
+        document.getElementById('CompanyId').value = CompanyID;
+          var model = $('#mainItemForm').serialize()
+        console.log(model, "model");
+        console.log(regiondropDown, "regiondropDown");
+        model.ItemRegions = regiondropDown;
+        $.post('/Quotation/CreateSubItems?' + model, {regions: regiondropDown }, function (data) { 
+            if (data) {
+                toastr.success(data.result);
+                    setTimeout(function () {
+                        window.location.reload();
+                    }, 3000);
+                }
+                else {
+                    setTimeout(function () {
+                        toastr.error('Error!');
+                    }, 2000);
+
+                };
+            });
+        //}
+        //checkValidations();
+    }
+
+
+</script>
+
+<style>
+
+    .dxSelect_Box {
+        height: 70% !important;
+        border: 1px solid #bfbfbf !important;
+    }
+
+    .dxTag_Box {
+        height: 46px !important;
+        border: 1px solid #bfbfbf !important;
+    }
+
+    .mrt_9 {
+        margin-top: 9% !important;
+    }
+</style>
+
+<div class="row">
+    <div class="col-md-12 grid-margin stretch-card">
+        <div class="card">
+            <!-- Card Header - Accordion -->
+            <div class="card-header">
+                <h3 class="m-0 font-weight-bold text-primary">Add New Item</h3>
+            </div>
+            <div class="card-body">
+
+                <form id="mainItemForm" class="forms-sample" novalidate="">
+                    <div class="form-row">
+                        @*<div class="form-group col-md-4">
+                        <label> Company <em class="text-danger">*</em></label>
+                        <div id="companyDropdown"></div>
+                    </div>*@
+
+                        <input type="hidden" class="form-control" id="CompanyId" name="CompanyId">
+
+                        <div class="form-group col-md-4">
+                            <label> MainItem <em class="text-danger">*</em></label>
+                            <div id="mainItemDropdown"></div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Regions </label>
+                                <div id="userRegions"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-4">
+                            <label for="iTem" class="">Item <em class="text-danger">*</em></label>
+                            <input type="text" class="form-control" id="Name" name="Item" placeholder="Item Name" required>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="prIce" class="">Price <em class="text-danger">*</em></label>
+                            <input type="text" class="form-control" id="Price" name="Price" placeholder="0" required>
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <button type="button" class="btn btn-gradient-info mr-2 mrt_9" id="btnSubmitCreate" onclick="onSubmit()">Save</button>
+                        </div>
+                    </div>
+
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title"> Sub Items</h4>
+
+                <div id="gridContainer"></div>
+            </div>
+        </div>
+    </div>
+</div>
+ 
