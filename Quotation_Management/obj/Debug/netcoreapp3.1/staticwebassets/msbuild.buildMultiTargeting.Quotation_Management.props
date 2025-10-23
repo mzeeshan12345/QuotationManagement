@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\build\Quotation_Management.props" />
+</Project>

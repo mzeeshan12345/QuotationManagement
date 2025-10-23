@@ -27,7 +27,7 @@ namespace Quotation_Management.ViewModels
                 var mailAddress = new MailAddress(request.CustomData);
                 var recipients = new MailAddressCollection() { mailAddress };
                 var attachment = new Attachment(stream, System.Net.Mime.MediaTypeNames.Application.Pdf);
-                return SendEmail('', "Subject is Here!", "PFA", attachment);
+                return SendEmail(recipients, "Subject is Here!", "PFA", attachment);
             }
         }
 
@@ -40,9 +40,9 @@ namespace Quotation_Management.ViewModels
                 return new DocumentOperationResponse { Message = "Please configure the SMTP server settings." };
             }
 
-            string SmtpUserName = "ea7b0f66867bfb1d4a5428bd17529f5b";
-            string SmtpUserPassword = "8ff3dc9d679f1b67da8530588e244234";
-            string SmtpFrom = "donotreply@limitlesssol.org";
+            string SmtpUserName = "*****";
+            string SmtpUserPassword = "123456789";
+            string SmtpFrom = "donotreply@domain.com";
             string SmtpFromDisplayName = "Quotation";
             using (var smtpClient = new SmtpClient(SmtpHost, SmtpPort))
             {
@@ -63,7 +63,7 @@ namespace Quotation_Management.ViewModels
 
                     foreach (var item in recipients)
                     {
-                        message.To.Add(item);
+                        message.To.Add("");
                     }
 
                     try
