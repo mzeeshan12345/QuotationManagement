@@ -9,7 +9,7 @@ COPY ["Quotation_Management/Quotation_Management.csproj", "Quotation_Management/
 RUN dotnet restore "Quotation_Management/Quotation_Management.csproj"
 
 # Copy the rest of the source code
-COPY . .
+COPY . . 
 
 # Build the app
 WORKDIR "/src/Quotation_Management"
