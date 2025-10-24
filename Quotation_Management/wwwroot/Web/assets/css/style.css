@@ -13469,7 +13469,57 @@ table.table-bordered > tbody > tr > td {
 services-block-three > a a:hover, a:active {
     color: #712c6b !important;
     text-decoration: none;
+} 
+
+.card {
+    border: 0;
+    background: #ffffff;
+    border-radius: 25px !important;
 }
- 
+
+.card-header {
+    padding: 0.75rem 1.25rem;
+    margin-bottom: 0;
+    background-color: rgb(112 144 187 / 52%) !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125) !important;
+}
+
+.text-primary, .list-wrapper .completed .remove
+{
+    color: #1b4882 !important;
+}
+
+
+.btn-gradient-info { 
+    background: linear-gradient(to right, #2e4461, #047edf 99%) !important; 
+}
+
+.btn-gradient-secondary {
+    background: linear-gradient(to right, #6b6b6b, #9a9a9a) !important;
+}
+
+
+.nav-tabs {
+    border-bottom: 1px solid #ebedf2;
+    border-radius: 20px !important;
+}
+
+    .nav-tabs .nav-link.active, .nav-tabs .nav-item.show .nav-link { 
+        border-radius: 30px !important;
+    }
+
+/*.dx-datagrid-borders .dx-datagrid-rowsview, .dx-datagrid-headers + .dx-datagrid-rowsview {
+    border-top: 1px solid #2e4461;
+}
+
+.dx-datagrid-borders > .dx-datagrid-rowsview, .dx-datagrid-borders > .dx-datagrid-total-footer {
+    border-bottom: 1px solid #2e4461;
+}
+
+
+.dx-datagrid-borders > .dx-datagrid-headers, .dx-datagrid-borders > .dx-datagrid-rowsview, .dx-datagrid-borders > .dx-datagrid-total-footer {
+    border-left: 1px solid #2e4461;
+    border-right: 1px solid #2e4461;
+}*/
 
 /*# sourceMappingURL=style.css.map */

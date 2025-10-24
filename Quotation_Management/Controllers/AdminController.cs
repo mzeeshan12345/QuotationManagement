@@ -875,9 +875,15 @@ namespace Quotation_Management.Controllers
             var countries = _countryRepo.GetAll().Select(x=> x.Name);
             return Json(countries);
         }
-        public IActionResult GetClient(long id, long companyId)
+        //public IActionResult GetClient(long id, long companyId)
+        //{
+        //    var client = _clientRepo.GetAll().Where(x=> x.ClientId == id && x.CompanyId == companyId).LastOrDefault();
+        //    return Json(client);
+        //}
+       
+        public IActionResult GetClient(long id)
         {
-            var client = _clientRepo.GetAll().Where(x=> x.ClientId == id && x.CompanyId == companyId).LastOrDefault();
+            var client = _clientRepo.GetAll().Where(x=> x.ClientId == id).LastOrDefault();
             return Json(client);
         }
         
