@@ -44,9 +44,13 @@ namespace Quotation_Management
                 MaxFailedAccessAttempts = 3
             };
 
+            var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
+                           ?? Configuration.GetConnectionString("DefaultConnection");
+
             services.AddDbContext<ApplicationDbContext>(options =>
-                    options.UseSqlServer(
-                        Configuration.GetConnectionString("DefaultConnection")));
+                    options.UseSqlServer(connectionString
+                        //Configuration.GetConnectionString("DefaultConnection")
+                        ));
 
             //services.Configure<IdentityOptions>(options =>
             //{ 
